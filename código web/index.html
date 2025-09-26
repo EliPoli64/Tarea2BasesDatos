@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Empleados</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+    <h1>Lista de Empleados</h1>
+    <div id="search-container">
+        <label for="name">Buscar empleado:</label>
+        <input type="text" id="name" placeholder="Nombre de empleado">
+        <button onclick="buscarEmpleado()">Buscar</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Salario</th>
+            </tr>
+        </thead>
+        <tbody id="empleados-tabla">
+            
+        </tbody>
+    </table>
+    <br>
+    <br>
+
+    <button onclick="cargarInsertarEmpleado()">Insertar</button>
+
+    <script src = "src.js"></script>
+</body>
+</html>
