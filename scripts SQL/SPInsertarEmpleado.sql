@@ -8,22 +8,33 @@ CREATE OR ALTER PROCEDURE [dbo].[InsertarEmpleado]
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF EXISTS (SELECT 1 FROM dbo.Empleado WHERE Nombre = @innombre)
+    SET @outResultCode = 0;
+    
+    -- Check for duplicate document
+    IF EXISTS (SELECT 1 FROM dbo.Empleado WHERE ValorDocumentoIdentidad = @inDocumentoIdentidad)
     BEGIN
         SELECT @outResultCode = E.Codigo 
         FROM dbo.Error E 
         WHERE E.Descripcion LIKE '%usuario%';
-
         RETURN;
     END
 
     BEGIN TRY
         DECLARE @puestoID INT;
-        BEGIN TRANSACTION
+        DECLARE @bitacoraResultCode INT;  -- Separate variable for bitacora result
+        
+        -- Validate position exists
+        SELECT @puestoID = P.IDPuesto
+        FROM dbo.Puesto P
+        WHERE P.Nombre = @inPuesto;
 
-            SELECT @puestoID = P.IDPuesto
-            FROM dbo.Puesto P
-            WHERE P.Nombre = @inPuesto;
+        IF @puestoID IS NULL
+        BEGIN
+            SET @outResultCode = 50002; -- Invalid position error
+            RETURN;
+        END
+
+        BEGIN TRANSACTION
 
             INSERT INTO dbo.Empleado (
                 [IDPuesto]
@@ -40,33 +51,53 @@ BEGIN
                 , 0
                 , 1
             );
-            DECLARE @codResultado INT;
+ 
+            -- Use separate variable for bitacora result
             EXEC dbo.InsertarBitacora 
                 @inIP
                 , @inUsuario
-                , CONCAT(@inDocumentoIdentidad, ', ', @inNombre, ', ', @inPuesto)
-                , 6, -- insercion exitosa
-                , @codResultado OUTPUT;
-
-            SET @outResultCode = 0;
-        COMMIT TRANSACTION
+                , CONCAT(@descError, ', ', @inDocumentoIdentidad, ', ', @inNombre, ', ', @inPuesto)
+                , 6  -- insercion exitosa
+                , @bitacoraResultCode OUTPUT;
+            
+            IF (@bitacoraResultCode <> 0)
+            BEGIN
+                ROLLBACK TRANSACTION;
+                SET @outResultCode = @bitacoraResultCode;
+                RETURN;
+            END
+            
+        COMMIT TRANSACTION;
+        
     END TRY
     BEGIN CATCH
-        DECLARE @descError VARCHAR(128); -- descripcion error
-        SELECT @descError = E.Descripcion
-        FROM dbo.Error E 
-        WHERE E.Codigo = 7; -- error insercion empleado
-        EXEC dbo.InsertarBitacora 
-            @inIP
-            , @inUsuario
-            , CONCAT(@descError, @inDocumentoIdentidad, ', ', @inNombre, ', ', @inPuesto)
-            , 7 -- insercion exitosa
-            , @codResultado OUTPUT;
-        SELECT @outResultCode = E.Codigo 
-        FROM dbo.Error E 
-        WHERE E.Descripcion LIKE '%usuario%';
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
 
+        INSERT INTO dbo.DBError (
+            [UserName]
+            , [Number]
+            , [State]
+            , [Severity]
+            , [Line]
+            , [Procedure]
+            , [Message]
+            , [DateTime]
+        ) VALUES (
+            SUSER_SNAME()
+            , ERROR_NUMBER()
+            , ERROR_STATE()
+            , ERROR_SEVERITY()
+            , ERROR_LINE()
+            , ERROR_PROCEDURE()
+            , ERROR_MESSAGE()
+            , GETDATE()
+        );
+
+        SELECT @outResultCode = E.Codigo
+			FROM dbo.Error E 
+			WHERE E.Descripcion 
+			LIKE '%base de datos%';
     END CATCH;
 END;
-
 GO
