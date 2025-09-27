@@ -73,10 +73,9 @@ BEGIN
 			RETURN;
 		END;
 
-		-- Validate password
+		-- validar contraseña
 		IF (@contrasennaCorrecta <> @inContrasenna)
 		BEGIN
-			-- Log failed login attempt
 			DECLARE @failResultCode INT;
 			EXEC dbo.InsertarBitacora 
 				@inIP
