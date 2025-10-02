@@ -30,7 +30,6 @@ function buscarEmpleado() {
                 return 0;
             } ); // ordenar por nombre
             data.forEach(empleado => {
-                
                 const fila = document.createElement('tr');
                 fila.innerHTML = `
                     <td>${empleado.ID}</td>

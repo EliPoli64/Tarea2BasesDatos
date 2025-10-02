@@ -1,6 +1,6 @@
 CREATE OR ALTER PROCEDURE dbo.ObtenerDescripcionError
-    @inCodigo INT
-    , @outDescripcion VARCHAR(256) OUTPUT
+    @inCodigo           INT
+    , @outDescripcion   VARCHAR(256) OUTPUT
 AS
 BEGIN  
     SET NOCOUNT ON;
