@@ -1,16 +1,15 @@
 CREATE OR ALTER PROCEDURE [dbo].[InsertarEmpleado]
-    @inNombre VARCHAR(64)
-    , @inPuesto VARCHAR(32)
+    @inNombre               VARCHAR(64)
+    , @inPuesto             VARCHAR(32)
     , @inDocumentoIdentidad VARCHAR(16)
-    , @inIP VARCHAR(32)
-    , @inUsuario VARCHAR(32)
-    , @outResultCode INT OUTPUT
+    , @inIP                 VARCHAR(32)
+    , @inUsuario            VARCHAR(32)
+    , @outResultCode        INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
     SET @outResultCode = 0;
     
-    -- Check for duplicate document
     IF EXISTS (SELECT 1 FROM dbo.Empleado WHERE ValorDocumentoIdentidad = @inDocumentoIdentidad)
     BEGIN
         SELECT @outResultCode = E.Codigo 
@@ -21,16 +20,15 @@ BEGIN
 
     BEGIN TRY
         DECLARE @puestoID INT;
-        DECLARE @bitacoraResultCode INT;  -- Separate variable for bitacora result
-        
-        -- Validate position exists
+        DECLARE @bitacoraResultCode INT;
+
         SELECT @puestoID = P.IDPuesto
         FROM dbo.Puesto P
         WHERE P.Nombre = @inPuesto;
 
         IF @puestoID IS NULL
         BEGIN
-            SET @outResultCode = 50002; -- Invalid position error
+            SET @outResultCode = 50008; -- error bd
             RETURN;
         END
 
@@ -72,32 +70,29 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
+			ROLLBACK TRANSACTION;
 
-        INSERT INTO dbo.DBError (
-            [UserName]
-            , [Number]
-            , [State]
-            , [Severity]
-            , [Line]
-            , [Procedure]
-            , [Message]
-            , [DateTime]
-        ) VALUES (
-            SUSER_SNAME()
-            , ERROR_NUMBER()
-            , ERROR_STATE()
-            , ERROR_SEVERITY()
-            , ERROR_LINE()
-            , ERROR_PROCEDURE()
-            , ERROR_MESSAGE()
-            , GETDATE()
-        );
+		INSERT INTO dbo.DBError (
+			[UserName]
+			, [Number]
+			, [State]
+			, [Severity]
+			, [Line]
+			, [Procedure]
+			, [Message]
+			, [DateTime]
+		) VALUES (
+			SUSER_SNAME()
+			, ERROR_NUMBER()
+			, ERROR_STATE()
+			, ERROR_SEVERITY()
+			, ERROR_LINE()
+			, ERROR_PROCEDURE()
+			, ERROR_MESSAGE()
+			, GETDATE()
+		);
 
-        SELECT @outResultCode = E.Codigo
-			FROM dbo.Error E 
-			WHERE E.Descripcion 
-			LIKE '%base de datos%';
+		SET @outResultCode = 50008; -- error bd
     END CATCH;
 END;
 GO

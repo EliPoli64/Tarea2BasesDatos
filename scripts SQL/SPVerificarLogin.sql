@@ -1,22 +1,19 @@
 CREATE OR ALTER PROCEDURE dbo.VerificarLogin
-	@inIP VARCHAR(32)
-	, @inUsuario VARCHAR(32)
-	, @inContrasenna VARCHAR(256)
-	, @outResultCode INT OUTPUT
+	@inIP 				VARCHAR(32)
+	, @inUsuario 		VARCHAR(32)
+	, @inContrasenna 	VARCHAR(256)
+	, @outResultCode 	INT OUTPUT
 AS
 BEGIN
 	SET NOCOUNT ON;
 	SET @outResultCode = 0;
 	
 	BEGIN TRY
-		-- Validate user exists
+		-- validar existencia de usuario
 		IF NOT EXISTS (SELECT 1 FROM dbo.Usuario U WHERE U.Nombre = @inUsuario)
 		BEGIN
-			SELECT @outResultCode = E.Codigo 
-			FROM dbo.Error E 
-			WHERE E.Descripcion LIKE '%usuario%';
-			
-			-- Log failed login attempt
+			SET @outResultCode = 50001; -- usuario no existe
+
 			DECLARE @bitacoraResultCode INT;
 			EXEC dbo.InsertarBitacora 
 				@inIP
@@ -38,20 +35,34 @@ BEGIN
 		FROM dbo.Usuario U 
 		WHERE U.Nombre = @inUsuario;
 
-		-- Check failed login attempts in last 15 minutes
-		DECLARE @cantLoginsFallidos INT;
-		SELECT @cantLoginsFallidos = COUNT(*)  -- Fixed: COUNT(*) instead of COUNT(6)
-		FROM dbo.Bitacora B  -- Fixed: Assuming table name is Bitacora, not BitacoraEvento
+		DECLARE @deshabilitado INT;
+		SELECT @deshabilitado = COUNT(1) 
+		FROM dbo.Bitacora B
 		WHERE B.IP = @inIP
-			AND B.Usuario = @inUsuario  -- Fixed: Using Usuario instead of IDPostByUser
-			AND B.[TimeStamp] >= DATEADD(MINUTE, -15, GETDATE())
-			AND B.TipoEvento = 2;  -- login fallido
-
-		IF (@cantLoginsFallidos >= 5) 
+			AND B.Usuario = @inUsuario
+			AND B.[TimeStamp] >= DATEADD(MINUTE, -10, GETDATE())
+			AND B.TipoEvento = 3;  -- login deshabilitado
+			
+		IF (@deshabilitado > 0)
 		BEGIN
 			SELECT @outResultCode = E.Codigo
 			FROM dbo.Error E 
 			WHERE E.Descripcion LIKE '%login deshabilitado%';
+			
+			RETURN;
+		END;
+
+		DECLARE @cantLoginsFallidos INT;
+		SELECT @cantLoginsFallidos = COUNT(6) 
+		FROM dbo.Bitacora B
+		WHERE B.IP = @inIP
+			AND B.Usuario = @inUsuario
+			AND B.[TimeStamp] >= DATEADD(MINUTE, -5, GETDATE())
+			AND B.TipoEvento = 2;  -- login no exitoso
+
+		IF (@cantLoginsFallidos >= 5) 
+		BEGIN
+			SET @outResultCode = 50003;
 
 			IF (@cantLoginsFallidos = 5) 
 			BEGIN
@@ -66,7 +77,7 @@ BEGIN
 					@inIP
 					, @inUsuario
 					, ''
-					, 8  -- bloqueo usuario
+					, 3  -- bloqueo usuario
 					, @lockResultCode OUTPUT;
 			END;
 			
@@ -105,7 +116,6 @@ BEGIN
 
 	END TRY
 	BEGIN CATCH
-		-- Rollback transaction if active
 		IF @@TRANCOUNT > 0
 			ROLLBACK TRANSACTION;
 
@@ -129,10 +139,7 @@ BEGIN
 			, GETDATE()
 		);
 
-		SELECT @outResultCode = E.Codigo
-			FROM dbo.Error E 
-			WHERE E.Descripcion 
-			LIKE '%base de datos%';
+		SET @outResultCode = 50008; -- error bd
 	END CATCH;
 	
 	SET NOCOUNT OFF;

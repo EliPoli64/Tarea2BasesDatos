@@ -11,7 +11,7 @@ function insertarEmpleado() {
         alert("Por favor ingrese un salario válido (número positivo).");
         return;
     }
-    fetch(`http://25.42.57.218:5000/proyecto/insert/${nombreEmpleado}/${parseFloat(salarioEmpleado).toFixed(2).toString()}`)
+    fetch(`http://25.38.209.9:5000/proyecto/insert/${nombreEmpleado}/${parseFloat(salarioEmpleado).toFixed(2).toString()}`)
         .then(response => response.json())
         .then(data => {
             if (data[0].Codigo == 200) {

@@ -1,4 +1,4 @@
-CREATE PROCEDURE dbo.InsertarBitacora
+CREATE OR ALTER PROCEDURE dbo.InsertarBitacora
 	@inIP VARCHAR(32)
 	, @inUsuario VARCHAR(32)
 	, @inDescripcion VARCHAR(256)
@@ -27,15 +27,15 @@ BEGIN
 	END TRY
 	BEGIN CATCH
 
-		INSERT INTO dbo.DBError	(
-			UserName
-			, Number
-			, State
-			, Severity
-			, Line
+		INSERT INTO dbo.DBError (
+			[UserName]
+			, [Number]
+			, [State]
+			, [Severity]
+			, [Line]
 			, [Procedure]
-			, Message
-			, DateTime
+			, [Message]
+			, [DateTime]
 		) VALUES (
 			SUSER_SNAME()
 			, ERROR_NUMBER()
@@ -47,10 +47,7 @@ BEGIN
 			, GETDATE()
 		);
 
-		SELECT @outResultCode = E.Codigo 
-        FROM dbo.Error E 
-        WHERE E.Descripcion 
-        LIKE '%base de datos%';
+		SET @outResultCode = 50008; -- error bd
 	
 	END CATCH
 	SET NOCOUNT OFF;
