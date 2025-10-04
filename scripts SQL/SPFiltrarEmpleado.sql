@@ -6,12 +6,11 @@ BEGIN
     SET NOCOUNT ON;
     SET @outResultCode = 0;
     BEGIN TRY
-        SELECT 
-        ID
-        , Nombre
-        , Salario 
-        FROM [dbo].[Empleado] E 
-        WHERE E.Nombre LIKE '%' + @infiltro + '%';
+        SELECT ID
+              , Nombre
+              , Salario 
+            FROM [dbo].[Empleado] E 
+            WHERE E.Nombre LIKE '%' + @infiltro + '%';
     END TRY
 
     BEGIN CATCH

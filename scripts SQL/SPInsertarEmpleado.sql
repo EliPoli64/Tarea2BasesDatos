@@ -12,25 +12,56 @@ BEGIN
     
     IF EXISTS (SELECT 1 FROM dbo.Empleado WHERE ValorDocumentoIdentidad = @inDocumentoIdentidad)
     BEGIN
-        SELECT @outResultCode = E.Codigo 
-        FROM dbo.Error E 
-        WHERE E.Descripcion LIKE '%usuario%';
-        RETURN;
+        -- desc bitácora para inserción
+        SET @descBitacora = CONCAT('Empleado con ValorDocumentoIdentidad ya existe en actualización,'
+            , @inDocumentoIdentidad
+            , ','
+            , @inNombre
+            , ','
+            , @inPuesto)
+
+        EXEC dbo.InsertarBitacora 
+            @inIP
+            , @inUsuario
+            , @descBitacora
+            , 5 -- insert no exitoso
+            , @bitacoraResultCode OUTPUT;
+        SET @outResultCode = 50005; -- ya existe nombre en la BD
     END
-
-    BEGIN TRY
-        DECLARE @puestoID INT;
-        DECLARE @bitacoraResultCode INT;
-
-        SELECT @puestoID = P.IDPuesto
+    
+    DECLARE @puestoID INT;
+    SELECT @puestoID = P.IDPuesto
         FROM dbo.Puesto P
         WHERE P.Nombre = @inPuesto;
 
-        IF @puestoID IS NULL
-        BEGIN
-            SET @outResultCode = 50008; -- error bd
-            RETURN;
-        END
+    IF @puestoID IS NULL -- no existe el puesto, por cualquier razón
+    BEGIN
+        -- desc bitácora para inserción
+        SET @descBitacora = CONCAT('Empleado con ValorDocumentoIdentidad ya existe en actualización,'
+            , @inDocumentoIdentidad
+            , ','
+            , @inNombre
+            , ','
+            , @inPuesto)
+
+        EXEC dbo.InsertarBitacora 
+            @inIP
+            , @inUsuario
+            , @descBitacora
+            , 5 -- insert no exitoso
+            , @bitacoraResultCode OUTPUT;
+        SET @outResultCode = 50008; -- error bd
+        RETURN;
+    END
+
+
+    BEGIN TRY
+        DECLARE @bitacoraResultCode INT;
+        SET @descBitacora = CONCAT(@inDocumentoIdentidad
+                            , ', '
+                            , @inNombre
+                            , ', '
+                            , @inPuesto);
 
         BEGIN TRANSACTION
 
@@ -53,7 +84,7 @@ BEGIN
             EXEC dbo.InsertarBitacora 
                 @inIP
                 , @inUsuario
-                , CONCAT(@inDocumentoIdentidad, ', ', @inNombre, ', ', @inPuesto)
+                , @descBitacora
                 , 6  -- insercion exitosa
                 , @bitacoraResultCode OUTPUT;
             

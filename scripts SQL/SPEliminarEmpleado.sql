@@ -8,6 +8,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET @outResultCode = 0; 
+    DECLARE @descBitacora VARCHAR(128);
 
     -- verificar que exista el empleado
     IF NOT EXISTS (SELECT COUNT(1) FROM dbo.Empleado E
@@ -15,6 +16,7 @@ BEGIN
                 AND E.ValorDocumentoIdentidad = @inDocumentoIdentidadActual))
     BEGIN
         -- no hay código para esta ocasión
+        -- averiguar qué se inserta en logs aquí
         SET @outResultCode = 50008 -- error bd
         RETURN;
     END
@@ -30,9 +32,15 @@ BEGIN
 
         IF @puestoID IS NULL
         BEGIN
+            -- averiguar qué se inserta en logs aquí
             SET @outResultCode = 50008; -- error bd
             RETURN;
         END
+        SET @descBitacora = CONCAT(@inDocumentoIdentidad
+                            , ', '
+                            , @inNombre
+                            , ', '
+                            , @inPuesto);
 
         BEGIN TRANSACTION
 
@@ -46,7 +54,7 @@ BEGIN
             EXEC dbo.InsertarBitacora 
                 @inIP
                 , @inUsuario
-                , CONCAT(@inDocumentoIdentidad, ', ', @inNombre, ', ', @inPuesto)
+                , @descBitacora
                 , 6 -- insercion exitosa
                 , @bitacoraResultCode OUTPUT;
             

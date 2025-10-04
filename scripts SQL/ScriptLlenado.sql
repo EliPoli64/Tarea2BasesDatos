@@ -1,6 +1,5 @@
 -- TODO: adaptar este script para cargar de xml: andrés
 -- VALIDAR en frontend si entrada es nombre o cédula: andrés
--- delete empleado: elías
 -- seleccionar empleado: frontend
 -- insertar movimiento: andrés
 -- listar movimientos: andrés

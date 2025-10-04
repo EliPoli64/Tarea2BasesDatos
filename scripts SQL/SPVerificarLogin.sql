@@ -9,16 +9,29 @@ BEGIN
 	SET @outResultCode = 0;
 	
 	BEGIN TRY
+		DECLARE @descripcionBitacora VARCHAR(128);
+		
+		-- obtener numero de intentos de login recientes
+		DECLARE @cantLoginsFallidos INT;
+		SELECT @cantLoginsFallidos = COUNT(*) 
+		FROM dbo.Bitacora B
+		WHERE B.IP = @inIP
+			AND B.Usuario = @inUsuario
+			AND B.[TimeStamp] >= DATEADD(MINUTE, -5, GETDATE())
+			AND B.TipoEvento = 2;  -- login no exitoso
+
 		-- validar existencia de usuario
 		IF NOT EXISTS (SELECT 1 FROM dbo.Usuario U WHERE U.Nombre = @inUsuario)
 		BEGIN
 			SET @outResultCode = 50001; -- usuario no existe
+			
+			SET @descripcionBitacora = CONCAT(CAST(@cantLoginsFallidos AS VARCHAR), ',50002');
 
 			DECLARE @bitacoraResultCode INT;
 			EXEC dbo.InsertarBitacora 
 				@inIP
 				, @inUsuario
-				, CONCAT('Failed login: User not found - ', @inUsuario)
+				, @descripcionBitacora
 				, 2  -- login fallido
 				, @bitacoraResultCode OUTPUT;
 				
@@ -28,7 +41,6 @@ BEGIN
 		DECLARE @IDUsuario INT;
 		DECLARE @contrasennaCorrecta VARCHAR(256);
 
-		-- Get user ID and password
 		SELECT 
 			@IDUsuario = U.IDUsuario,
 			@contrasennaCorrecta = U.Contrasenna
@@ -51,14 +63,6 @@ BEGIN
 			
 			RETURN;
 		END;
-
-		DECLARE @cantLoginsFallidos INT;
-		SELECT @cantLoginsFallidos = COUNT(6) 
-		FROM dbo.Bitacora B
-		WHERE B.IP = @inIP
-			AND B.Usuario = @inUsuario
-			AND B.[TimeStamp] >= DATEADD(MINUTE, -5, GETDATE())
-			AND B.TipoEvento = 2;  -- login no exitoso
 
 		IF (@cantLoginsFallidos >= 5) 
 		BEGIN
@@ -87,17 +91,19 @@ BEGIN
 		-- validar contraseña
 		IF (@contrasennaCorrecta <> @inContrasenna)
 		BEGIN
+			SET @descripcionBitacora = CONCAT('Cantidad intentos fallidos: '
+										, CAST(@cantLoginsFallidos AS CHAR)
+										, ', '
+										, CAST(@outResultCode AS CHAR));
 			DECLARE @failResultCode INT;
 			EXEC dbo.InsertarBitacora 
 				@inIP
 				, @inUsuario
-				, CONCAT('Cantidad intentos fallidos: ', CAST(@cantLoginsFallidos AS CHAR), ', ', CAST(@outResultCode AS CHAR))
+				, @descripcionBitacora
 				, 2  -- login fallido
 				, @failResultCode OUTPUT;
 				
-			SELECT @outResultCode = E.Codigo 
-			FROM dbo.Error E 
-			WHERE E.Descripcion LIKE '%credenciales%' OR E.Descripcion LIKE '%contraseña%';
+			SET @outResultCode = 50002; -- password no existe
 			
 			RETURN;
 		END;
