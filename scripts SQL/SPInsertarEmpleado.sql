@@ -49,12 +49,11 @@ BEGIN
                 , 0
                 , 1
             );
- 
-            -- Use separate variable for bitacora result
+
             EXEC dbo.InsertarBitacora 
                 @inIP
                 , @inUsuario
-                , CONCAT(@descError, ', ', @inDocumentoIdentidad, ', ', @inNombre, ', ', @inPuesto)
+                , CONCAT(@inDocumentoIdentidad, ', ', @inNombre, ', ', @inPuesto)
                 , 6  -- insercion exitosa
                 , @bitacoraResultCode OUTPUT;
             
