@@ -11,13 +11,46 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET @outResultCode = 0; 
+    DECLARE @descBitacora VARCHAR(128);
 
+    -- buscar puesto para inserciones en bitacora
+    -- se usó join para no declarar otra variable
+    DECLARE @puestoActual VARCHAR(32);
+    SELECT @puestoActual = P.NombrePuesto
+        FROM dbo.Empleado E
+        JOIN dbo.Puesto P ON E.IDPuesto = P.IDPuesto
+        WHERE (E.Nombre = @inNombreActual
+        AND E.ValorDocumentoIdentidad = @inDocumentoIdentidadActual);
+    
+    -- buscar saldo para inserciones en bitacora
+    DECLARE @saldoVacaciones MONEY;
+    SELECT @saldoVacaciones = E.SaldoVacaciones
+        FROM dbo.Empleado E
+        WHERE (E.Nombre = @inNombreActual
+        AND E.ValorDocumentoIdentidad = @inDocumentoIdentidadActual);
     
     -- verificar que no haya otros empleados con ese nombre
     IF EXISTS (SELECT COUNT(1) FROM dbo.Empleado E
                 WHERE (E.Nombre = @inNombre
                 AND E.ValorDocumentoIdentidad <> @inDocumentoIdentidadActual))
     BEGIN
+        -- desc bitácora para inserción
+        SET @descBitacora = CONCAT('Empleado con mismo nombre ya existe en actualización,'
+            , @inDocumentoIdentidadActual
+            , ','
+            , @inNombreActual
+            , ','
+            , @puestoActual
+            , ','
+            , @inDocumentoIdentidad
+            , CAST(@saldoVacaciones AS VARCHAR))
+
+        EXEC dbo.InsertarBitacora 
+            @inIP
+            , @inUsuario
+            , @descBitacora
+            , 7 -- update no exitoso
+            , @bitacoraResultCode OUTPUT;
         SET @outResultCode = 50007 -- existe empleado con ese nombre en update
         RETURN;
     END
@@ -27,6 +60,23 @@ BEGIN
                 WHERE (E.ValorDocumentoIdentidad = @inDocumentoIdentidad
                 AND E.Nombre <> @inNombreActual))
     BEGIN
+        -- desc bitácora para inserción
+        SET @descBitacora = CONCAT('Empleado con ValorDocumentoIdentidad ya existe en actualización,'
+            , @inDocumentoIdentidadActual
+            , ','
+            , @inNombreActual
+            , ','
+            , @puestoActual
+            , ','
+            , @inDocumentoIdentidad
+            , CAST(@saldoVacaciones AS VARCHAR))
+
+        EXEC dbo.InsertarBitacora 
+            @inIP
+            , @inUsuario
+            , @descBitacora
+            , 7 -- update no exitoso
+            , @bitacoraResultCode OUTPUT;
         SET @outResultCode = 50006 -- existe empleado con ese docid en update
         RETURN;
     END
@@ -45,6 +95,7 @@ BEGIN
             SET @outResultCode = 50008; -- error bd
             RETURN;
         END
+        
 
         BEGIN TRANSACTION
 
