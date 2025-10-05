@@ -6,11 +6,31 @@ BEGIN
     SET NOCOUNT ON;
     SET @outResultCode = 0;
     BEGIN TRY
-        SELECT ID
-              , Nombre
-              , Salario 
+        SELECT E.ID
+              , E.Nombre
+              , E.ValorDocumentoIdentidad
+              , P.Nombre AS Puesto
+              , P.SalarioxHora
             FROM [dbo].[Empleado] E 
-            WHERE E.Nombre LIKE '%' + @infiltro + '%';
+            JOIN [dbo].[Puesto] P ON E.IDPuesto = P.ID -- join para info de puesto
+            WHERE E.EsActivo = 1
+            AND (
+                -- si es vacío retorne todo
+                @infiltro = '' 
+                OR 
+                (
+                    @infiltro <> '' 
+                    AND 
+                    (
+                        -- si es numérico busque por cédula
+                        (@infiltro NOT LIKE '%[^0-9]%' AND E.ValorDocumentoIdentidad LIKE '%' + @infiltro + '%')
+                        OR
+                        -- si tiene letras
+                        (E.Nombre LIKE '%' + @infiltro + '%')
+                    )
+                )
+            )
+            ORDER BY E.Nombre ASC;
     END TRY
 
     BEGIN CATCH
@@ -33,7 +53,7 @@ BEGIN
             , ERROR_MESSAGE()
             , GETDATE()
         );
-        SET @outResultCode = 50008; -- error bd
+        SET @outResultCode = 50008;
     END CATCH;
 END;
 GO

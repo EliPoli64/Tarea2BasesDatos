@@ -12,13 +12,14 @@ BEGIN
     SET NOCOUNT ON;
     SET @outResultCode = 0; 
     DECLARE @descBitacora VARCHAR(128);
+    DECLARE @bitacoraResultCode INT;
 
     -- buscar puesto para inserciones en bitacora
     -- se usó join para no declarar otra variable
     DECLARE @puestoActual VARCHAR(32);
-    SELECT @puestoActual = P.NombrePuesto
+    SELECT @puestoActual = P.Nombre
         FROM dbo.Empleado E
-        JOIN dbo.Puesto P ON E.IDPuesto = P.IDPuesto
+        JOIN dbo.Puesto P ON E.IDPuesto = P.ID
         WHERE (E.Nombre = @inNombreActual
         AND E.ValorDocumentoIdentidad = @inDocumentoIdentidadActual);
     
@@ -30,7 +31,7 @@ BEGIN
         AND E.ValorDocumentoIdentidad = @inDocumentoIdentidadActual);
     
     -- verificar que no haya otros empleados con ese nombre
-    IF EXISTS (SELECT COUNT(1) FROM dbo.Empleado E
+    IF EXISTS (SELECT 1 FROM dbo.Empleado E
                 WHERE (E.Nombre = @inNombre
                 AND E.ValorDocumentoIdentidad <> @inDocumentoIdentidadActual))
     BEGIN
@@ -56,7 +57,7 @@ BEGIN
     END
 
     -- verificar que no haya otros empleados con ese doc identidad
-    IF EXISTS (SELECT COUNT(1) FROM dbo.Empleado E
+    IF EXISTS (SELECT 1 FROM dbo.Empleado E
                 WHERE (E.ValorDocumentoIdentidad = @inDocumentoIdentidad
                 AND E.Nombre <> @inNombreActual))
     BEGIN
@@ -82,7 +83,7 @@ BEGIN
     END
 
     DECLARE @puestoID INT;
-    SELECT @puestoID = P.IDPuesto
+    SELECT @puestoID = P.ID
         FROM dbo.Puesto P
         WHERE P.Nombre = @inPuesto;
 
@@ -111,11 +112,6 @@ BEGIN
 
     -- flujo normal
     BEGIN TRY
-        
-        DECLARE @bitacoraResultCode INT;
-
-        
-        
         SET @descBitacora = CONCAT(@inDocumentoIdentidad
                                 , ', '
                                 , @inNombre

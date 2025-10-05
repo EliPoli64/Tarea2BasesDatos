@@ -10,15 +10,20 @@ BEGIN
 	BEGIN TRY
 		SET @outResultCode = 0;  -- no error code
 
-		INSERT INTO dbo.Bitacora (	
+		DECLARE @userID INT;
+		SELECT @userID = U.ID
+			FROM dbo.Usuario U
+			WHERE U.UserName = @inUsuario;
+
+		INSERT INTO dbo.BitacoraEvento (	
 			PostInIP
-			, Usuario
+			, [IDPostByUser]
 			, Descripcion
-			, TipoEvento
-			, [TimeStamp]
+			, IDTipoEvento
+			, [PostTime]
 		) VALUES (
 			@inIP
-			, @inUsuario
+			, @userID
 			, @inDescripcion
 			, @inTipoEvento
 			, GETDATE()

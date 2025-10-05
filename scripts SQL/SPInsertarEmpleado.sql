@@ -10,10 +10,13 @@ BEGIN
     SET NOCOUNT ON;
     SET @outResultCode = 0;
     
-    IF EXISTS (SELECT 1 FROM dbo.Empleado WHERE ValorDocumentoIdentidad = @inDocumentoIdentidad)
+    DECLARE @descBitacora VARCHAR(128);
+    DECLARE @bitacoraResultCode INT;
+    
+    IF EXISTS (SELECT 1 FROM dbo.Empleado WHERE ValorDocumentoIdentidad = @inDocumentoIdentidad AND EsActivo = 1)
     BEGIN
-        -- desc bitácora para inserción
-        SET @descBitacora = CONCAT('Empleado con ValorDocumentoIdentidad ya existe en actualización,'
+        SET @descBitacora = CONCAT(
+            'Empleado con ValorDocumentoIdentidad ya existe en actualización,'
             , @inDocumentoIdentidad
             , ','
             , @inNombre
@@ -24,20 +27,21 @@ BEGIN
             @inIP
             , @inUsuario
             , @descBitacora
-            , 5 -- insert no exitoso
+            , 5
             , @bitacoraResultCode OUTPUT;
-        SET @outResultCode = 50005; -- ya existe nombre en la BD
+        SET @outResultCode = 50005;
+        RETURN;
     END
     
     DECLARE @puestoID INT;
-    SELECT @puestoID = P.IDPuesto
+    SELECT @puestoID = P.ID
         FROM dbo.Puesto P
         WHERE P.Nombre = @inPuesto;
 
-    IF @puestoID IS NULL -- no existe el puesto, por cualquier razón
+    IF @puestoID IS NULL
     BEGIN
-        -- desc bitácora para inserción
-        SET @descBitacora = CONCAT('Empleado con ValorDocumentoIdentidad ya existe en actualización,'
+        SET @descBitacora = CONCAT(
+            'Puesto no encontrado para empleado,'
             , @inDocumentoIdentidad
             , ','
             , @inNombre
@@ -48,20 +52,19 @@ BEGIN
             @inIP
             , @inUsuario
             , @descBitacora
-            , 5 -- insert no exitoso
+            , 5
             , @bitacoraResultCode OUTPUT;
-        SET @outResultCode = 50008; -- error bd
+        SET @outResultCode = 50008;
         RETURN;
     END
 
-
     BEGIN TRY
-        DECLARE @bitacoraResultCode INT;
-        SET @descBitacora = CONCAT(@inDocumentoIdentidad
-                            , ', '
-                            , @inNombre
-                            , ', '
-                            , @inPuesto);
+        SET @descBitacora = CONCAT(
+                        @inDocumentoIdentidad
+                        , ', '
+                        , @inNombre
+                        , ', '
+                        , @inPuesto);
 
         BEGIN TRANSACTION
 
@@ -85,7 +88,7 @@ BEGIN
                 @inIP
                 , @inUsuario
                 , @descBitacora
-                , 6  -- insercion exitosa
+                , 6
                 , @bitacoraResultCode OUTPUT;
             
             IF (@bitacoraResultCode <> 0)
@@ -122,7 +125,7 @@ BEGIN
 			, GETDATE()
 		);
 
-		SET @outResultCode = 50008; -- error bd
+		SET @outResultCode = 50008;
     END CATCH;
 END;
 GO

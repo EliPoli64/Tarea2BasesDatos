@@ -11,9 +11,10 @@ BEGIN
     DECLARE @descBitacora VARCHAR(128);
 
     -- verificar que exista el empleado
-    IF NOT EXISTS (SELECT COUNT(1) FROM dbo.Empleado E
+    IF NOT EXISTS (SELECT 1 FROM dbo.Empleado E
                 WHERE (E.Nombre = @inNombre
-                AND E.ValorDocumentoIdentidad = @inDocumentoIdentidadActual))
+                AND E.ValorDocumentoIdentidad = @inDocumentoIdentidad)
+                AND E.EsActivo = 1)
     BEGIN
         -- no hay código para esta ocasión
         -- averiguar qué se inserta en logs aquí
@@ -23,14 +24,16 @@ BEGIN
 
     -- flujo normal
     BEGIN TRY
-        DECLARE @puestoID INT;
         DECLARE @bitacoraResultCode INT;
 
-        SELECT @puestoID = P.IDPuesto
-        FROM dbo.Puesto P
-        WHERE P.Nombre = @inPuesto;
+        DECLARE @puestoActual VARCHAR(32);
+        SELECT @puestoActual = P.Nombre
+            FROM dbo.Empleado E
+            JOIN dbo.Puesto P ON E.IDPuesto = P.ID
+            WHERE (E.Nombre = @inNombre
+            AND E.ValorDocumentoIdentidad = @inDocumentoIdentidad);
 
-        IF @puestoID IS NULL
+        IF @puestoActual IS NULL
         BEGIN
             -- averiguar qué se inserta en logs aquí
             SET @outResultCode = 50008; -- error bd
@@ -40,22 +43,20 @@ BEGIN
                             , ', '
                             , @inNombre
                             , ', '
-                            , @inPuesto);
+                            , @puestoActual);
 
         BEGIN TRANSACTION
 
             UPDATE dbo.Empleado 
-            SET [IDPuesto] = @puestoID
-                , [ValorDocumentoIdentidad] = @inDocumentoIdentidad 
-                , [Nombre] = @inNombre
-            WHERE Nombre = @inNombreActual 
-            AND ValorDocumentoIdentidad = @inDocumentoIdentidadActual;
+            SET EsActivo = 0
+            WHERE Nombre = @inNombre
+            AND ValorDocumentoIdentidad = @inDocumentoIdentidad;
 
             EXEC dbo.InsertarBitacora 
                 @inIP
                 , @inUsuario
                 , @descBitacora
-                , 6 -- insercion exitosa
+                , 10 -- borrado exitoso
                 , @bitacoraResultCode OUTPUT;
             
             IF (@bitacoraResultCode <> 0)

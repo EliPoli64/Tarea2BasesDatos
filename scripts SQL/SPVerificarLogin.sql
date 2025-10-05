@@ -10,78 +10,87 @@ BEGIN
 	
 	BEGIN TRY
 		DECLARE @descripcionBitacora VARCHAR(128);
+		DECLARE @userID INT;
+		DECLARE @contrasennaCorrecta VARCHAR(256);
+		DECLARE @esActivo BIT;
 		
-		-- obtener numero de intentos de login recientes
-		DECLARE @cantLoginsFallidos INT;
-		SELECT @cantLoginsFallidos = COUNT(*) 
-		FROM dbo.Bitacora B
-		WHERE B.IP = @inIP
-			AND B.Usuario = @inUsuario
-			AND B.[TimeStamp] >= DATEADD(MINUTE, -5, GETDATE())
-			AND B.TipoEvento = 2;  -- login no exitoso
-
-		-- validar existencia de usuario
-		IF NOT EXISTS (SELECT 1 FROM dbo.Usuario U WHERE U.Nombre = @inUsuario)
+		SELECT @userID = U.ID,
+		       @contrasennaCorrecta = U.[Password],
+			   @esActivo = 1  -- Asumiendo que todos los usuarios están activos
+		FROM dbo.Usuario U
+		WHERE U.UserName = @inUsuario;
+		
+		-- Si no existe el usuario
+		IF @userID IS NULL
 		BEGIN
 			SET @outResultCode = 50001; -- usuario no existe
 			
-			SET @descripcionBitacora = CONCAT(CAST(@cantLoginsFallidos AS VARCHAR), ',50002');
+			-- Obtener intentos fallidos
+			DECLARE @cantLoginsFallidos INT = 0;
+			SELECT @cantLoginsFallidos = COUNT(*) 
+			FROM dbo.BitacoraEvento B
+			WHERE B.PostInIP = @inIP
+				AND B.PostTime >= DATEADD(MINUTE, -5, GETDATE())
+				AND B.IDTipoEvento = 2;
+
+			SET @descripcionBitacora = CONCAT(CAST(@cantLoginsFallidos AS VARCHAR), ',50001');
 
 			DECLARE @bitacoraResultCode INT;
 			EXEC dbo.InsertarBitacora 
 				@inIP
 				, @inUsuario
 				, @descripcionBitacora
-				, 2  -- login fallido
+				, 2
 				, @bitacoraResultCode OUTPUT;
 				
 			RETURN;
 		END;
 
-		DECLARE @IDUsuario INT;
-		DECLARE @contrasennaCorrecta VARCHAR(256);
-
-		SELECT 
-			@IDUsuario = U.IDUsuario,
-			@contrasennaCorrecta = U.Contrasenna
-		FROM dbo.Usuario U 
-		WHERE U.Nombre = @inUsuario;
+		-- obtener numero de intentos de login recientes
+		DECLARE @cantLoginsFallidosUser INT;
+		SELECT @cantLoginsFallidosUser = COUNT(*) 
+		FROM dbo.BitacoraEvento B
+		WHERE B.PostInIP = @inIP
+			AND B.IDPostByUser = @userID
+			AND B.PostTime >= DATEADD(MINUTE, -5, GETDATE())
+			AND B.IDTipoEvento = 2;
 
 		DECLARE @deshabilitado INT;
 		SELECT @deshabilitado = COUNT(1) 
-		FROM dbo.Bitacora B
-		WHERE B.IP = @inIP
-			AND B.Usuario = @inUsuario
-			AND B.[TimeStamp] >= DATEADD(MINUTE, -10, GETDATE())
-			AND B.TipoEvento = 3;  -- login deshabilitado
+		FROM dbo.BitacoraEvento B
+		WHERE B.[PostInIP] = @inIP
+			AND B.[IDPostByUser] = @userID
+			AND B.[PostTime] >= DATEADD(MINUTE, -10, GETDATE())
+			AND B.IDTipoEvento = 3;
 			
 		IF (@deshabilitado > 0)
 		BEGIN
-			SELECT @outResultCode = E.Codigo
-			FROM dbo.Error E 
-			WHERE E.Descripcion LIKE '%login deshabilitado%';
-			
+			SET @descripcionBitacora = CONCAT(CAST(@cantLoginsFallidos AS VARCHAR), ',50001');
+			EXEC dbo.InsertarBitacora 
+				@inIP
+				, @inUsuario
+				, @descripcionBitacora
+				, 2
+				, @bitacoraResultCode OUTPUT;
+				
+			RETURN;
+			SET @outResultCode = 50004; -- login deshabilitado
 			RETURN;
 		END;
 
-		IF (@cantLoginsFallidos >= 5) 
+		IF (@cantLoginsFallidosUser >= 5) 
 		BEGIN
-			SET @outResultCode = 50003;
+			SET @outResultCode = 50003; -- demasiados intentos
 
-			IF (@cantLoginsFallidos = 5) 
+			IF (@cantLoginsFallidosUser = 5) 
 			BEGIN
-				-- bloquear user
-				UPDATE dbo.Usuario 
-				SET EsActivo = 0 
-				WHERE IDUsuario = @IDUsuario;
-				
 				-- insertar bloqueo en bitacora
 				DECLARE @lockResultCode INT;
 				EXEC dbo.InsertarBitacora 
 					@inIP
 					, @inUsuario
 					, ''
-					, 3  -- bloqueo usuario
+					, 3
 					, @lockResultCode OUTPUT;
 			END;
 			
@@ -92,18 +101,16 @@ BEGIN
 		IF (@contrasennaCorrecta <> @inContrasenna)
 		BEGIN
 			SET @descripcionBitacora = CONCAT('Cantidad intentos fallidos: '
-										, CAST(@cantLoginsFallidos AS CHAR)
-										, ', '
-										, CAST(@outResultCode AS CHAR));
+										, CAST(@cantLoginsFallidosUser AS CHAR));
 			DECLARE @failResultCode INT;
 			EXEC dbo.InsertarBitacora 
 				@inIP
 				, @inUsuario
 				, @descripcionBitacora
-				, 2  -- login fallido
+				, 2
 				, @failResultCode OUTPUT;
 				
-			SET @outResultCode = 50002; -- password no existe
+			SET @outResultCode = 50002; -- password incorrecta
 			
 			RETURN;
 		END;
@@ -115,7 +122,7 @@ BEGIN
 				@inIP
 				, @inUsuario
 				, ''
-				, 1  -- login exitoso
+				, 1
 				, @successResultCode OUTPUT;
 			
 		COMMIT TRANSACTION
@@ -145,7 +152,7 @@ BEGIN
 			, GETDATE()
 		);
 
-		SET @outResultCode = 50008; -- error bd
+		SET @outResultCode = 50008;
 	END CATCH;
 	
 	SET NOCOUNT OFF;

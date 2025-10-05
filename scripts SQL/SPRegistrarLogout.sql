@@ -1,27 +1,22 @@
 CREATE OR ALTER PROCEDURE dbo.RegistrarLogout
-    @inUsuario  VARCHAR(32)
-    , @inIP     VARCHAR(32)
+    @inUsuario          VARCHAR(32)
+    , @inIP             VARCHAR(32)
+    , @outResultCode    INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
     
-    DECLARE @outResultCode INT = 0;  -- no error
+    SET @outResultCode = 0;  -- no error
+    DECLARE @bitacoraResultCode INT;
     
     BEGIN TRY
-        -- Insertar registro en la bitácora para el cierre de sesión
-        INSERT INTO dbo.Bitacora (
-            IP,
-            Usuario, 
-            Descripcion,
-            TipoEvento,
-            [TimeStamp]
-        ) VALUES (
-            @inIP,
-            @inUsuario,
-            'Cierre de sesión exitoso',
-            3,  -- Código para evento de cierre de sesión
-            GETDATE()
-        );
+        
+        EXEC dbo.InsertarBitacora 
+			@inIP
+			, @inUsuario
+			, ''
+			, 4  -- logout
+			, @bitacoraResultCode OUTPUT;
         
     END TRY
     BEGIN CATCH
@@ -47,8 +42,5 @@ BEGIN
         
         SET @outResultCode = 50008; -- error bd
     END CATCH;
-    
-    -- Retornar código de resultado
-    SELECT @outResultCode AS ResultCode;
 END;
 GO
