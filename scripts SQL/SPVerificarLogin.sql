@@ -133,7 +133,8 @@ BEGIN
 			ROLLBACK TRANSACTION;
 
 		INSERT INTO dbo.DBError (
-			[UserName]
+			[ID] -- Columna ID añadida
+			, [UserName]
 			, [Number]
 			, [State]
 			, [Severity]
@@ -142,13 +143,15 @@ BEGIN
 			, [Message]
 			, [DateTime]
 		) VALUES (
-			SUSER_SNAME()
+			-- Forma automática de generar el siguiente ID
+			(SELECT ISNULL(MAX(ID), 0) + 1 FROM dbo.DBError)
+			, SUSER_SNAME()
 			, ERROR_NUMBER()
 			, ERROR_STATE()
 			, ERROR_SEVERITY()
 			, ERROR_LINE()
 			, ERROR_PROCEDURE()
-			, ERROR_MESSAGE()
+			,  'ERROR_MESSAGE()' -- Esto va sin comentarios pero si se quitan da un error
 			, GETDATE()
 		);
 

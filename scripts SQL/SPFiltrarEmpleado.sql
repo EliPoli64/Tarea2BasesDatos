@@ -1,4 +1,4 @@
-CREATE OR ALTER PROCEDURE [dbo].[FiltrarEmpleados]
+ï»¿CREATE OR ALTER PROCEDURE [dbo].[FiltrarEmpleados]
     @infiltro        VARCHAR(64)
     , @outResultCode INT OUTPUT
 AS
@@ -15,14 +15,14 @@ BEGIN
             JOIN [dbo].[Puesto] P ON E.IDPuesto = P.ID -- join para info de puesto
             WHERE E.EsActivo = 1
             AND (
-                -- si es vacío retorne todo
+                -- si es vacï¿½o retorne todo
                 @infiltro = '' 
                 OR 
                 (
                     @infiltro <> '' 
                     AND 
                     (
-                        -- si es numérico busque por cédula
+                        -- si es numï¿½rico busque por cï¿½dula
                         (@infiltro NOT LIKE '%[^0-9]%' AND E.ValorDocumentoIdentidad LIKE '%' + @infiltro + '%')
                         OR
                         -- si tiene letras
