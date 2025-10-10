@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insertar Empleado</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <h1>Insertar Nuevo Empleado</h1>
+    <div id="insert-container">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" placeholder="Nombre completo del empleado">
+
+        <label for="docIdentidad">Documento de Identidad:</label>
+        <input type="text" id="docIdentidad" placeholder="Número de documento">
+        
+        <label for="puesto">Puesto:</label>
+        <select id="puestos-dropdown">
+            </select>
+    </div>
+    <div id="buttons-container">
+        <button onclick="insertarEmpleado()">Guardar</button>
+        <button onclick="volverAPrincipal()">Regresar</button>
+    </div>
+    
+    <script src="../javascript/insertar.js"></script>
+</body>
+</html>

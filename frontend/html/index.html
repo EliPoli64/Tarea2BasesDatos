@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Empleados</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header>
+        <h1>Lista de Empleados</h1>
+        <div class="user-info">
+            <span id="user-display"></span>
+            <button onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+    </header>
+    
+    <div id="search-container">
+        <label for="filtro">Buscar por nombre o documento:</label>
+        <input type="text" id="filtro" placeholder="Escriba aquí para filtrar...">
+        <button onclick="filtrarEmpleados()">Buscar</button>
+    </div>
+
+    <div id="buttons-container">
+        <button onclick="irAInsertarEmpleado()">Insertar Nuevo Empleado</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Documento de Identidad</th>
+                <th>Puesto</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="empleados-tabla">
+            </tbody>
+    </table>
+
+    <script src="../javascript/src.js"></script>
+</body>
+</html>
