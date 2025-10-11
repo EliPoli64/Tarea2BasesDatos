@@ -1,7 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Endpoint Requerido en Backend ---
-    // Se necesita un endpoint GET /puestos para obtener la lista de puestos
-    fetch(`http://LOCALHOST:5000/proyecto/puestos`)
+    const usuario = sessionStorage.getItem('usuario');
+    if (!usuario) {
+        alert("No ha iniciado sesión. Será redirigido.");
+        window.location.href = 'login.html';
+        return;
+    }
+
+    fetch(`http://LOCALHOST:5000/proyecto/puestos/`, {credentials: 'include'})
         .then(response => response.json())
         .then(puestos => {
             const dropdown = document.getElementById('puestos-dropdown');
@@ -11,39 +16,60 @@ document.addEventListener('DOMContentLoaded', () => {
                 option.textContent = puesto.Nombre;
                 dropdown.appendChild(option);
             });
-        });
+    });
 });
 
+
+
+
+
 function insertarEmpleado() {
-    let nombreEmpleado = document.getElementById('name').value;
-    let documentoIdentidad = document.getElementById('docIdentidad').value.toString();
-    let puesto = parseInt(document.getElementById('puestos-dropdown').value)
-    const regexNombre = /[^áÁéÉíÍóÓúÚüÜñÑa-zA-Z\s-]/i; // valida que no tenga números ni caracteres especiales
-    if (regexNombre.test(nombreEmpleado)) {
+    const nombreEmpleado = document.getElementById('nombre').value;
+    const documentoIdentidad = document.getElementById('docIdentidad').value;
+    const puestoEmpleado = document.getElementById('puestos-dropdown').value;
+
+    // Validaciones (tu código de regex estaba bien)
+    if (!/^[a-zA-Z\s-]+$/.test(nombreEmpleado)) {
         alert("Por favor ingrese solo letras, espacios y guiones en el nombre de empleado.");
         return;
     }
-    const regexSalario = /^\d*\.?\d*$/i; // valida que sea número
-    if (!regexSalario.test(salarioEmpleado) || isNaN(salarioEmpleado) || salarioEmpleado <= 0) {
-        alert("Por favor ingrese un salario válido (número positivo).");
+    if (!/^[0-9]+$/.test(documentoIdentidad)) {
+        alert("El documento de identidad solo debe contener números.");
         return;
     }
 
+    // Creamos un objeto con los datos del nuevo empleado
+    const datosNuevoEmpleado = {
+        nombre: nombreEmpleado,
+        puesto: puestoEmpleado,
+        documento: documentoIdentidad
+    };
 
-    fetch(`http://LOCALHOST:5000/proyecto/insert/${nombreEmpleado}/${puesto}/${documentoIdentidad}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data[0].Codigo == 200) {
-                alert(`Empleado ${nombreEmpleado} con el salario ${parseFloat(salarioEmpleado).toFixed(2).toString()} insertado correctamente.`);
-            } else {
-                alert(`Error al insertar el empleado: ${data[0].Mensaje}`);
-            }
-            console.log(data[0]);
-            document.getElementById('name').value = '';
-            document.getElementById('salary').value = '';
-        })
+    
+    fetch(`http://localhost:5000/proyecto/insertarEmpleado/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(datosNuevoEmpleado),
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        
+        alert(data.mensaje);
+        
+        if (data.exito) {
+            document.getElementById('nombre').value = '';
+            document.getElementById('docIdentidad').value = '';
+            window.location.href = 'index.html';
+        }
+    })
+    .catch(error => {
+        console.error('Error al insertar:', error);
+        alert('Error de conexión al intentar insertar el empleado.');
+    });
 }
-
 function volverAPrincipal() {
     window.location.href = 'index.html';
 }

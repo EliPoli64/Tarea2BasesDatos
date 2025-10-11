@@ -2,16 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const usuario = sessionStorage.getItem('usuario');
     
     if (!usuario) {
-        window.location.href = 'login.html'; // Si no hay sesión, volver al login
+        window.location.href = 'login.html';
     }
     document.getElementById('user-display').textContent = `Usuario: ${usuario}`;
-
     cargarEmpleados();
 });
 
 function cargarEmpleados() {
-    // Endpoint existente en backend.py
-    fetch(`http://LOCALHOST:5000/proyecto/selectTodos`)
+    fetch(`http://LOCALHOST:5000/proyecto/selectTodos/`, {credentials: 'include'})
         .then(response => response.json())
         .then(data => {
             renderizarTabla(data);
@@ -21,9 +19,9 @@ function cargarEmpleados() {
 
 function filtrarEmpleados() {
     const filtro = document.getElementById('filtro').value;
-    const url = filtro ? `http://LOCALHOST:5000/proyecto/select/${filtro}` : `http://LOCALHOST:5000/proyecto/selectTodos`;
+    const url = filtro ? `http://LOCALHOST:5000/proyecto/select/${filtro}` : `http://LOCALHOST:5000/proyecto/selectTodos/`;
     
-    fetch(url)
+    fetch(url, {credentials: 'include'})
         .then(response => response.json())
         .then(data => {
             renderizarTabla(data);
@@ -77,7 +75,21 @@ function editarEmpleado(doc) { window.location.href = `actualizar.html?doc=${doc
 function verMovimientos(doc) { window.location.href = `movimientos.html?doc=${doc}`; }
 
 function cerrarSesion() {
-    sessionStorage.removeItem('usuario');
-    window.location.href = 'login.html';
-    // Llamar a un SP para registrar el logout, está en los requerimientos del programa
+    fetch('http://localhost:5000/proyecto/logout/', {
+        method: 'POST',
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.mensaje); 
+    
+        sessionStorage.removeItem('usuario');
+        
+        window.location.href = 'login.html';
+    })
+    .catch(error => {
+        console.error('Error al cerrar sesión:', error);
+        
+        window.location.href = 'login.html';
+    });
 }

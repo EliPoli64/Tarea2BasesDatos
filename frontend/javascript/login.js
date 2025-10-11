@@ -8,6 +8,7 @@ function iniciarSesion() {
         return;
     }
 
+
     fetch(`http://localhost:5000/proyecto/login`, {
         method: 'POST',
         headers: {
