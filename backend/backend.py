@@ -5,9 +5,31 @@ import pyodbc
 stringConexion = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=LOCALHOST,1433;DATABASE=EmpleadosDB;UID=Remoto;PWD=1234;"
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True, origins=["http://127.0.0.1:5500"])
 
-@app.route("/proyecto/select/<string:nombre>") # Endpoint corregido
+app.secret_key = 'claveSecreta1234'
+
+# Funciones auxiliares
+# Funcion Auxiliar para los errores del login
+def obtener_descripcion_error(codigo_error):
+    descripcion = "Error desconocido."
+    try:
+        conexion = pyodbc.connect(stringConexion)
+        cursor = conexion.cursor()
+        sql = """
+        DECLARE @outDescripcion VARCHAR(256);
+        EXEC dbo.ObtenerDescripcionError @inCodigo = ?, @outDescripcion = @outDescripcion OUTPUT;
+        SELECT @outDescripcion;
+        """
+        descripcion = cursor.execute(sql, codigo_error).fetchval()
+    except pyodbc.Error as ex:
+        print(f"Error al obtener descripción del error: {ex}")
+    finally:
+        if 'conexion' in locals():
+            conexion.close()
+    return descripcion
+
+@app.route("/proyecto/select/<string:nombre>/") # Endpoint corregido
 def ejecutarSPSelect(nombre):
     try:
         conexion = pyodbc.connect(stringConexion)
@@ -33,7 +55,7 @@ def ejecutarSPSelect(nombre):
             conexion.close()
     return jsonify({"error": "Error al obtener los empleados"})
 
-@app.route("/proyecto/selectTodos") # Endpoint corregido
+@app.route("/proyecto/selectTodos/") # Endpoint corregido
 def ejecutarSPSelectTodos():
     try:
         conexion = pyodbc.connect(stringConexion)
@@ -59,7 +81,7 @@ def ejecutarSPSelectTodos():
             conexion.close()
     return jsonify({"error": "Error al obtener los empleados"})
 
-@app.route("/proyecto/puestos") # Endpoint nuevo
+@app.route("/proyecto/puestos/") # Endpoint nuevo
 def ejecutarSPTraerPuestos():
     try:
         conexion = pyodbc.connect(stringConexion)
@@ -85,28 +107,7 @@ def ejecutarSPTraerPuestos():
             conexion.close()
     return jsonify({"error": "Error al obtener los puestos"})
 
-
-
-# Funcion Auxiliar para los errores del login
-def obtener_descripcion_error(codigo_error):
-    descripcion = "Error desconocido."
-    try:
-        conexion = pyodbc.connect(stringConexion)
-        cursor = conexion.cursor()
-        sql = """
-        DECLARE @outDescripcion VARCHAR(256);
-        EXEC dbo.ObtenerDescripcionError @inCodigo = ?, @outDescripcion = @outDescripcion OUTPUT;
-        SELECT @outDescripcion;
-        """
-        descripcion = cursor.execute(sql, codigo_error).fetchval()
-    except pyodbc.Error as ex:
-        print(f"Error al obtener descripción del error: {ex}")
-    finally:
-        if 'conexion' in locals():
-            conexion.close()
-    return descripcion
-
-@app.route("/proyecto/login", methods=['POST']) # Endpoint nuevo
+@app.route("/proyecto/login/", methods=['POST']) # Endpoint nuevo
 def ejecutarSPLogin():
     conexion = None
     cursor = None
@@ -122,11 +123,11 @@ def ejecutarSPLogin():
  
         conexion = pyodbc.connect(stringConexion, autocommit=False)
         cursor = conexion.cursor()
-        sql = """"\
+        sql = """
         DECLARE @outResultCode INT;
         EXEC dbo.VerificarLogin @inIP = ?, @inUsuario = ?, @inContrasenna = ?, @outResultCode = @outResultCode OUTPUT;
         SELECT @outResultCode;
-        """""
+        """
         parametros = (ip_cliente, usuario, contrasena)
         
         codigo_resultado = cursor.execute(sql, parametros).fetchval()
@@ -147,6 +148,77 @@ def ejecutarSPLogin():
     finally:
         if 'conexion' in locals():
             conexion.close()
+
+
+@app.route("/proyecto/logout/", methods=['POST']) # Endpoint nuevo
+def logout():
+    if 'usuario' in session:
+        usuario = session.get('usuario')
+        ip_cliente = session.get('ip')
+        
+        try:
+            conn = pyodbc.connect(stringConexion)
+            cursor = conn.cursor()
+            sql = """
+            DECLARE @outResultCode INT;
+            EXEC dbo.RegistrarLogout @inIP = ?, @inUsuario = ?, @outResultCode = @outResultCode OUTPUT;
+            SELECT @outResultCode;
+            """
+            params = (ip_cliente, usuario)
+            cursor.execute(sql, params)
+            conn.commit()
+
+        except pyodbc.Error as ex:
+            print(f"Error de base de datos al registrar logout: {ex}")
+            # Aunque falle el registro, se debe cerrar sesion
+        finally:
+            if 'conn' in locals():
+                conn.close()
+
+    # Limpia/destruye la sesión del usuario
+    session.clear()
+    return jsonify({"mensaje": "Sesión cerrada correctamente."})
+
+@app.route("/proyecto/insertarEmpleado/", methods=['POST']) # Endpoint nuevo
+def insertar_empleado():
+    # Verifica si el usuario ha iniciado sesión
+    #if 'usuario' not in session:
+        #return jsonify({"exito": False, "mensaje": "No autorizado. Por favor, inicie sesión."}), 401
+
+    usuario_logueado = session.get('usuario')
+    ip_usuario = session.get('ip')
+    
+    datos_empleado = request.get_json()
+    nombre_nuevo = datos_empleado.get('nombre')
+    puesto_nuevo = datos_empleado.get('puesto')
+    documento_nuevo = datos_empleado.get('documento')
+
+    try:
+        conn = pyodbc.connect(stringConexion)
+        cursor = conn.cursor()     
+        
+        sql = """
+        DECLARE @outResultCode INT;
+        EXEC dbo.InsertarEmpleado @inNombre = ?, @inPuesto = ?, @inDocumentoIdentidad = ?, @inIP = ?, @inUsuario = ?, @outResultCode = @outResultCode OUTPUT;
+        SELECT @outResultCode;
+        """
+        params = (nombre_nuevo, puesto_nuevo, documento_nuevo, ip_usuario, usuario_logueado)
+        
+        codigo_resultado = cursor.execute(sql, params).fetchval()
+        conn.commit() 
+
+        if codigo_resultado == 0:
+             return jsonify({"exito": True, "mensaje": "Empleado insertado correctamente."})
+        else:
+            mensaje_error = obtener_descripcion_error(codigo_resultado)
+            return jsonify({"exito": False, "mensaje": mensaje_error})
+
+    except pyodbc.Error as ex:
+        print(f"Error al insertar empleado: {ex}")
+        return jsonify({"exito": False, "mensaje": "Error en la base de datos al insertar."}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
 
 
 app.run(host="0.0.0.0", port=5000, debug=True)
