@@ -16,13 +16,15 @@ BEGIN
 			WHERE U.UserName = @inUsuario;
 
 		INSERT INTO dbo.BitacoraEvento (	
-			PostInIP
+			[ID]
+			, PostInIP
 			, [IDPostByUser]
 			, Descripcion
 			, IDTipoEvento
 			, [PostTime]
 		) VALUES (
-			@inIP
+			(SELECT ISNULL(MAX(ID), 0) + 1 FROM dbo.BitacoraEvento)
+			, @inIP
 			, @userID
 			, @inDescripcion
 			, @inTipoEvento
@@ -33,7 +35,8 @@ BEGIN
 	BEGIN CATCH
 
 		INSERT INTO dbo.DBError (
-			[UserName]
+			[ID] -- Columna ID añadida
+			, [UserName]
 			, [Number]
 			, [State]
 			, [Severity]
@@ -42,7 +45,8 @@ BEGIN
 			, [Message]
 			, [DateTime]
 		) VALUES (
-			SUSER_SNAME()
+			(SELECT ISNULL(MAX(ID), 0) + 1 FROM dbo.DBError)
+			, SUSER_SNAME()
 			, ERROR_NUMBER()
 			, ERROR_STATE()
 			, ERROR_SEVERITY()

@@ -69,14 +69,16 @@ BEGIN
         BEGIN TRANSACTION
 
             INSERT INTO dbo.Empleado (
-                [IDPuesto]
+                [ID] -- Columna ID añadida
+                , [IDPuesto]
                 , [ValorDocumentoIdentidad]
                 , [Nombre]
                 , [FechaContratacion]
                 , [SaldoVacaciones]
                 , [EsActivo])
             VALUES (
-                @puestoID
+                (SELECT ISNULL(MAX(ID), 0) + 1 FROM dbo.Empleado)
+                , @puestoID
                 , @inDocumentoIdentidad 
                 , @inNombre
                 , GETDATE()
@@ -106,7 +108,8 @@ BEGIN
 			ROLLBACK TRANSACTION;
 
 		INSERT INTO dbo.DBError (
-			[UserName]
+			[ID] -- Columna ID añadida
+            , [UserName]
 			, [Number]
 			, [State]
 			, [Severity]
@@ -115,7 +118,8 @@ BEGIN
 			, [Message]
 			, [DateTime]
 		) VALUES (
-			SUSER_SNAME()
+            (SELECT ISNULL(MAX(ID), 0) + 1 FROM dbo.DBError)
+			, SUSER_SNAME()
 			, ERROR_NUMBER()
 			, ERROR_STATE()
 			, ERROR_SEVERITY()

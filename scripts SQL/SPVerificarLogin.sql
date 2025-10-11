@@ -151,7 +151,7 @@ BEGIN
 			, ERROR_SEVERITY()
 			, ERROR_LINE()
 			, ERROR_PROCEDURE()
-			,  'ERROR_MESSAGE()' -- Esto va sin comentarios pero si se quitan da un error
+			, ERROR_MESSAGE()
 			, GETDATE()
 		);
 
