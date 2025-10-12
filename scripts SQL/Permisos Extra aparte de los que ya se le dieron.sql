@@ -35,4 +35,12 @@ GO
 ALTER TABLE dbo.DBError
 ALTER COLUMN [Message] VARCHAR(512);
 
+-- Hay que cambiar el tipo de dato del posttime porque si no da error al momento de cargar desde el XML
+-- Tomar en cuenta que el orden de la tabla va a variar pero no afecta a nada, ver si en las indicaciones del proyecto eso 
+-- afecta
 
+ALTER TABLE dbo.Movimiento
+DROP COLUMN PostTime;
+
+ALTER TABLE dbo.Movimiento
+ADD PostTime DATETIME NOT NULL;
