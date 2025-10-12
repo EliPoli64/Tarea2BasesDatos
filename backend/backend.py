@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 import pyodbc
 
-stringConexion = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=LOCALHOST,1433;DATABASE=EmpleadosDB;UID=Remoto;PWD=1234;"
+stringConexion = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=LOCALHOST,1433;DATABASE=EmpleadosDB;UID=Remoto;PWD=Contraseña123;"
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["http://127.0.0.1:5500"])
@@ -131,12 +131,14 @@ def ejecutarSPLogin():
         parametros = (ip_cliente, usuario, contrasena)
         
         codigo_resultado = cursor.execute(sql, parametros).fetchval()
+
+        print(codigo_resultado)
         
         if codigo_resultado == 0:  # 0 significa éxito
             # Creamos la sesión del usuario
             session['usuario'] = usuario
             session['ip'] = ip_cliente
-            return jsonify({"autenticado": True, "usuario": usuario})
+            return jsonify({"autenticado": True, "usuario": usuario, "ip": ip_cliente})
         else:
             # Si hay un error, obtenemos su descripción
             mensaje_error = obtener_descripcion_error(codigo_resultado)
@@ -148,7 +150,6 @@ def ejecutarSPLogin():
     finally:
         if 'conexion' in locals():
             conexion.close()
-
 
 @app.route("/proyecto/logout/", methods=['POST']) # Endpoint nuevo
 def logout():
@@ -185,13 +186,14 @@ def insertar_empleado():
     #if 'usuario' not in session:
         #return jsonify({"exito": False, "mensaje": "No autorizado. Por favor, inicie sesión."}), 401
 
-    usuario_logueado = session.get('usuario')
-    ip_usuario = session.get('ip')
+
     
     datos_empleado = request.get_json()
     nombre_nuevo = datos_empleado.get('nombre')
     puesto_nuevo = datos_empleado.get('puesto')
     documento_nuevo = datos_empleado.get('documento')
+    usuario_logueado = datos_empleado.get('usuario')
+    ip_usuario = datos_empleado.get('ip')
 
     try:
         conn = pyodbc.connect(stringConexion)
@@ -203,6 +205,7 @@ def insertar_empleado():
         SELECT @outResultCode;
         """
         params = (nombre_nuevo, puesto_nuevo, documento_nuevo, ip_usuario, usuario_logueado)
+        print(params)
         
         codigo_resultado = cursor.execute(sql, params).fetchval()
         conn.commit() 
