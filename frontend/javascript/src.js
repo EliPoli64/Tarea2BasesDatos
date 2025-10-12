@@ -84,6 +84,7 @@ function cerrarSesion() {
         console.log(data.mensaje); 
     
         sessionStorage.removeItem('usuario');
+        sessionStorage.removeItem('ip');
         
         window.location.href = 'login.html';
     })

@@ -8,8 +8,7 @@ function iniciarSesion() {
         return;
     }
 
-
-    fetch(`http://localhost:5000/proyecto/login`, {
+    fetch(`http://localhost:5000/proyecto/login/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -26,12 +25,10 @@ function iniciarSesion() {
     })
     .then(data => {
         if (data.autenticado) {
-            // Guardamos el usuario y redirigimos.
-            // sessionStorage solo guarda el dato mientras la pestaña del navegador esté abierta.
             sessionStorage.setItem('usuario', usuario);
+            sessionStorage.setItem('ip', data.ip); // Traemos la ip desde el backend una vez se ha autenticado el usuario, esto porque en el backend no mantiene sesion activa
             window.location.href = 'index.html';
         } else {
-            // El backend devolvió un mensaje de error
             mensajeError.textContent = data.mensaje || 'Usuario o contraseña incorrectos.';
         }
     })

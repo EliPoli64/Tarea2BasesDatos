@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const usuario = sessionStorage.getItem('usuario');
+
     if (!usuario) {
         alert("No ha iniciado sesión. Será redirigido.");
         window.location.href = 'login.html';
@@ -42,7 +43,9 @@ function insertarEmpleado() {
     const datosNuevoEmpleado = {
         nombre: nombreEmpleado,
         puesto: puestoEmpleado,
-        documento: documentoIdentidad
+        documento: documentoIdentidad,
+        usuario: sessionStorage.getItem('usuario'),
+        ip: sessionStorage.getItem('ip')
     };
 
     
