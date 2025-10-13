@@ -38,7 +38,7 @@ def ejecutarSPSelect(nombre):
         parametros = (nombre, 0)
         cursor.execute(sql, parametros)
         filas = cursor.fetchall()
-        headers = ["ID", "Nombre", "ValorDocumentoIdentidad", "Puesto", "Salario x Hora"]
+        headers = ["ID", "Nombre", "ValorDocumentoIdentidad", "Puesto", "Salario x Hora", "SaldoVacaciones"]
         listaEmpleados = []
         for fila in filas:
             filaLista = dict(zip(headers, fila))
@@ -222,6 +222,82 @@ def insertar_empleado():
     finally:
         if 'conn' in locals():
             conn.close()
+
+@app.route("/proyecto/eliminarEmpleado/", methods=['POST']) # Endpoint nuevo
+def eliminar_empleado():
+        
+    datos_empleado = request.get_json()
+    nombre = datos_empleado.get('nombre')
+    documento_identidad = datos_empleado.get('documento')
+    usuario_logueado = datos_empleado.get('usuario')
+    ip_usuario = datos_empleado.get('ip')
+
+    try:
+        conn = pyodbc.connect(stringConexion)
+        cursor = conn.cursor()     
+        
+        sql = """
+        DECLARE @outResultCode INT;
+        EXEC dbo.EliminarEmpleado @inNombre = ?, @inDocumentoIdentidad = ?, @inIP = ?, @inUsuario = ?, @outResultCode = @outResultCode OUTPUT;
+        SELECT @outResultCode;
+        """
+        params = (nombre, documento_identidad, ip_usuario, usuario_logueado)
+        print(params)
+        
+        codigo_resultado = cursor.execute(sql, params).fetchval()
+        conn.commit() 
+
+        if codigo_resultado == 0:
+             return jsonify({"exito": True, "mensaje": "Empleado eliminado correctamente."})
+        else:
+            mensaje_error = obtener_descripcion_error(codigo_resultado)
+            return jsonify({"exito": False, "mensaje": mensaje_error})
+
+    except pyodbc.Error as ex:
+        print(f"Error al eliminar empleado: {ex}")
+        return jsonify({"exito": False, "mensaje": "Error en la base de datos al eliminar."}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+@app.route("/proyecto/actualizarEmpleado/", methods=['PUT']) # Endpoint nuevo
+def actualizar_empleado():
+        
+    datos_empleado = request.get_json()
+    nombreActual = datos_empleado.get('nombreActual')
+    documentoActual = datos_empleado.get('documentoActual')
+    nombreNuevo = datos_empleado.get('nombreNuevo')
+    documentoNuevo = datos_empleado.get('documentoNuevo')
+    puestoNuevo = datos_empleado.get('puestoNuevo')
+    usuario_logueado = datos_empleado.get('usuario')
+    ip_usuario = datos_empleado.get('ip')
+
+    try:
+        conn = pyodbc.connect(stringConexion)
+        cursor = conn.cursor()     
+        
+        sql = """
+        DECLARE @outResultCode INT;
+        EXEC dbo.ActualizarEmpleado @inNombre = ?, @inPuesto = ?, @inDocumentoIdentidad = ?, @inNombreActual = ?, @inDocumentoIdentidadActual = ?, @inIP = ?, @inUsuario = ?, @outResultCode = @outResultCode OUTPUT;
+        SELECT @outResultCode;
+        """
+        params = (nombreNuevo, puestoNuevo, documentoNuevo, nombreActual, documentoActual, ip_usuario, usuario_logueado)
+        codigo_resultado = cursor.execute(sql, params).fetchval()
+        conn.commit() 
+
+        if codigo_resultado == 0:
+             return jsonify({"exito": True, "mensaje": "Empleado actualizado correctamente."})
+        else:
+            mensaje_error = obtener_descripcion_error(codigo_resultado)
+            return jsonify({"exito": False, "mensaje": mensaje_error})
+
+    except pyodbc.Error as ex:
+        print(f"Error al actualizar empleado: {ex}")
+        return jsonify({"exito": False, "mensaje": "Error en la base de datos al actualizar."}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
 
 
 app.run(host="0.0.0.0", port=5000, debug=True)
