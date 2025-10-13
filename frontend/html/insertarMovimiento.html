@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insertar Movimiento</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <h1>Registrar Nuevo Movimiento</h1>
+
+    <div id="info-empleado-container">
+        <h2>Empleado</h2>
+        <p><strong>Nombre:</strong> <span id="empleado-nombre">Cargando...</span></p>
+        <p><strong>Documento:</strong> <span id="empleado-documento">Cargando...</span></p>
+        <p><strong>Saldo de Vacaciones Actual:</strong> <span id="empleado-saldo">Cargando...</span></p>
+    </div>
+
+    <div id="insert-container">
+        <label for="tipos-movimiento-dropdown">Tipo de Movimiento:</label>
+        <select id="tipos-movimiento-dropdown"></select>
+
+        <label for="monto">Monto:</label>
+        <input type="number" id="monto" min="0" placeholder="Ej: 2">
+    </div>
+
+    <div id="buttons-container">
+        <button onclick="guardarMovimiento()">Guardar Movimiento</button>
+        <button onclick="cancelar()">Cancelar</button>
+    </div>
+
+    <script src="../javascript/insertarMovimiento.js"></script>
+</body>
+</html>
