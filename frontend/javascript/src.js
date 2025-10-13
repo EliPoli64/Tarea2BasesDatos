@@ -50,12 +50,25 @@ function renderizarTabla(empleados) {
     });
 }
 
-function eliminarEmpleado(docIdentidad, nombre) {
-    // Requerimiento R4: Alerta de confirmación [cite: 42]
-    if (confirm(`¿Está seguro de que desea eliminar a ${nombre}?`)) {
-        // --- Endpoint Requerido en Backend ---
-        // Se necesita un endpoint DELETE /empleado/eliminar/{docIdentidad}
-        fetch(`http://LOCALHOST:5000/proyecto/eliminar/${docIdentidad}`, { method: 'DELETE' })
+function eliminarEmpleado(documentoIdentidad, nombreEmpleado) {
+    if (confirm(`¿Está seguro de que desea eliminar a ${nombreEmpleado} con documento de identidad ${documentoIdentidad}?`)) {
+        
+        // Creamos un objeto con los datos del empleado a eliminar
+        const datosEmpleadoEliminar = {
+            nombre: nombreEmpleado,
+            documento: documentoIdentidad,
+            usuario: sessionStorage.getItem('usuario'),
+            ip: sessionStorage.getItem('ip')
+        };
+        
+        fetch(`http://LOCALHOST:5000/proyecto/eliminarEmpleado/`, { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datosEmpleadoEliminar),
+            credentials: 'include'
+        })
         .then(response => response.json())
         .then(data => {
             if (data.exito) {

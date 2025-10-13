@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Cargar los puestos y luego los datos del empleado
     cargarPuestosYEmpleado();
 });
 
@@ -27,7 +26,7 @@ function cargarPuestosYEmpleado() {
         .then(res => res.json());
 
     // 2. Cargar los datos del empleado actual
-    const empleadoPromise = fetch(`http://localhost:5000/proyecto/empleado/${docOriginal}/`, { credentials: 'include' })
+    const empleadoPromise = fetch(`http://localhost:5000/proyecto/select/${docOriginal}/`, { credentials: 'include' })
         .then(res => res.json());
 
     // 3. Cuando ambas promesas se completen, poblar el formulario
@@ -48,13 +47,13 @@ function cargarPuestosYEmpleado() {
             });
 
             // Poblar los campos del formulario con los datos del empleado
-            document.getElementById('nombre').value = empleado.Nombre;
-            document.getElementById('docIdentidad').value = empleado.ValorDocumentoIdentidad;
-            document.getElementById('saldo').value = empleado.SaldoVacaciones;
-            dropdown.value = empleado.Puesto; // Seleccionar el puesto actual
+            document.getElementById('nombre').value = empleado[0].Nombre;
+            document.getElementById('docIdentidad').value = empleado[0].ValorDocumentoIdentidad;
+            document.getElementById('saldo').value = empleado[0].SaldoVacaciones;
+            dropdown.value = empleado[0].Puesto; // Seleccionar el puesto actual
 
             // Guardar el nombre original para la llamada al SP
-            nombreOriginal = empleado.Nombre;
+            nombreOriginal = empleado[0].Nombre;
         })
         .catch(err => console.error("Error cargando datos para actualizar:", err));
 }
@@ -66,10 +65,12 @@ function guardarCambios() {
 
     const datosActualizados = {
         nombreActual: nombreOriginal,
-        docActual: docOriginal,
+        documentoActual: docOriginal,
         nombreNuevo: nombreNuevo,
-        docNuevo: docNuevo,
-        puestoNuevo: puestoNuevo
+        documentoNuevo: docNuevo,
+        puestoNuevo: puestoNuevo,
+        usuario: sessionStorage.getItem('usuario'),
+        ip: sessionStorage.getItem('ip')
     };
 
     fetch('http://localhost:5000/proyecto/actualizarEmpleado/', {

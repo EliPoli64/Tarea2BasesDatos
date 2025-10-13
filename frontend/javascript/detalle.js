@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Verifica si el usuario ha iniciado sesión
     if (!sessionStorage.getItem('usuario')) {
         window.location.href = 'login.html';
         return;
@@ -15,8 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Llama a un nuevo endpoint para obtener los datos de un solo empleado
-    fetch(`http://localhost:5000/proyecto/empleado/${docIdentidad}/`, {
+    fetch(`http://localhost:5000/proyecto/select/${docIdentidad}/`, {
         credentials: 'include'
     })
     .then(response => {
@@ -28,10 +26,14 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(data.error);
             window.location.href = 'index.html';
         } else {
-            document.getElementById('empleado-nombre').textContent = data.Nombre;
-            document.getElementById('empleado-documento').textContent = data.ValorDocumentoIdentidad;
-            document.getElementById('empleado-puesto').textContent = data.Puesto;
-            document.getElementById('empleado-saldo').textContent = data.SaldoVacaciones;
+            console.log(data.Nombre)
+            console.log(data.ValorDocumentoIdentidad)
+            console.log(data.Puesto)
+            console.log(data.SaldoVacaciones)
+            document.getElementById('empleado-nombre').textContent = data[0].Nombre;
+            document.getElementById('empleado-documento').textContent = data[0].ValorDocumentoIdentidad;
+            document.getElementById('empleado-puesto').textContent = data[0].Puesto;
+            document.getElementById('empleado-saldo').textContent = data[0].SaldoVacaciones;
         }
     })
     .catch(error => console.error('Error al cargar detalle del empleado:', error));
