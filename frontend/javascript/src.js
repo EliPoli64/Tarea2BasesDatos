@@ -34,7 +34,7 @@ function renderizarTabla(empleados) {
     tabla.innerHTML = '';
     empleados.forEach(emp => {
         const fila = document.createElement('tr');
-        // Se asume que el backend devolverá estos campos
+        // El backend devuelve estos campos
         fila.innerHTML = `
             <td>${emp.Nombre}</td>
             <td>${emp.ValorDocumentoIdentidad}</td>

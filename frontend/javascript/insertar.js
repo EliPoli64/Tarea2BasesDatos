@@ -20,16 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-
-
-
-
 function insertarEmpleado() {
     const nombreEmpleado = document.getElementById('nombre').value;
     const documentoIdentidad = document.getElementById('docIdentidad').value;
     const puestoEmpleado = document.getElementById('puestos-dropdown').value;
 
-    // Validaciones (tu código de regex estaba bien)
     if (!/^[a-zA-Z\s-]+$/.test(nombreEmpleado)) {
         alert("Por favor ingrese solo letras, espacios y guiones en el nombre de empleado.");
         return;

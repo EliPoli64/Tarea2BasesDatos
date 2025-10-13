@@ -1,13 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Verifica que el usuario haya iniciado sesión
-    const usuario = sessionStorage.getItem('usuario');
-    if (!usuario) {
+    if (!sessionStorage.getItem('usuario')) {
         window.location.href = 'login.html';
         return;
     }
 
-    // Obtiene el documento de identidad del empleado desde la URL
-    // Por ejemplo: movimientos.html?doc=56917772
     const params = new URLSearchParams(window.location.search);
     const docIdentidad = params.get('doc');
 
@@ -16,67 +12,96 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'index.html';
         return;
     }
-
-    // Llama a la función para cargar los datos
-    cargarDatosMovimientos(docIdentidad);
+    
+    cargarInfoEmpleado(docIdentidad);
+    cargarListaMovimientos(docIdentidad);
 });
 
-function cargarDatosMovimientos(docIdentidad) {
-    // Llama a un NUEVO endpoint en el backend que debes crear
-    fetch(`http://localhost:5000/proyecto/movimientos/${docIdentidad}/`, {
+
+function cargarInfoEmpleado(docIdentidad) {
+    fetch(`http://localhost:5000/proyecto/select/${docIdentidad}/`, {
         credentials: 'include'
     })
     .then(response => {
-        if (response.status === 401) {
-            window.location.href = 'login.html';
-            return;
-        }
+        if (response.status === 401) { window.location.href = 'login.html'; }
         return response.json();
     })
-    .then(data => {
-        if (data.error) {
-            alert(data.error);
+    .then(empleado => {
+        if (empleado.error) {
+            alert(empleado.error);
+        } else {
+            document.getElementById('empleado-nombre').textContent = empleado[0].Nombre;
+            document.getElementById('empleado-documento').textContent = empleado[0].ValorDocumentoIdentidad;
+            document.getElementById('empleado-saldo').textContent = empleado[0].SaldoVacaciones;
+        }
+    })
+    .catch(error => console.error('Error al cargar info del empleado:', error));
+}
+
+
+
+function cargarListaMovimientos(docIdentidad) {
+    
+    const datosPeticion = {
+        documentoIdentidad: docIdentidad,
+        usuario: sessionStorage.getItem('usuario'),
+        ip: sessionStorage.getItem('ip')
+    };
+    const queryParams = new URLSearchParams(datosPeticion).toString();
+
+    fetch(`http://localhost:5000/proyecto/movimientos?${queryParams}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+    })
+    .then(response => {
+        if (response.status === 401) { window.location.href = 'login.html'; }
+        return response.json();
+    })
+    .then(movimientos => {
+        const tabla = document.getElementById('movimientos-tabla');
+        tabla.innerHTML = '';
+
+        if (movimientos.error) {
+            alert(movimientos.error);
+            tabla.innerHTML = `<tr><td colspan="7">${movimientos.error}</td></tr>`;
             return;
         }
 
-        // Rellena la información del empleado
-        document.getElementById('empleado-nombre').textContent = data.empleado.Nombre;
-        document.getElementById('empleado-documento').textContent = data.empleado.ValorDocumentoIdentidad;
-        document.getElementById('empleado-saldo').textContent = data.empleado.SaldoVacaciones;
-
-        // Rellena la tabla de movimientos
-        const tabla = document.getElementById('movimientos-tabla');
-        tabla.innerHTML = ''; // Limpia la tabla por si acaso
-
-        if (data.movimientos.length === 0) {
+        if (movimientos.length === 0) {
             tabla.innerHTML = '<tr><td colspan="7">Este empleado no tiene movimientos registrados.</td></tr>';
             return;
         }
         
-        // El requerimiento pide ordenar por fecha descendente
-        data.movimientos.sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha));
-
-        data.movimientos.forEach(mov => {
+        
+        movimientos.forEach(mov => {
             const fila = document.createElement('tr');
+
+            const fechaFormateada = new Date(mov.Fecha).toLocaleDateString();
+            const montoFormateado = parseFloat(mov.Monto).toFixed(2);
+
+            const nuevoSaldoFormateado = mov.NuevoSaldo ? parseFloat(mov.NuevoSaldo).toFixed(2) : 'N/A';
+            const horaFormateada = new Date(mov.PostTime).toLocaleString();
+
+
             fila.innerHTML = `
-                <td>${new Date(mov.Fecha).toLocaleDateString()}</td>
+                <td>${fechaFormateada}</td>
                 <td>${mov.TipoMovimiento}</td>
-                <td>${mov.Monto}</td>
+                <td>${montoFormateado}</td>
                 <td>${mov.NuevoSaldo}</td>
                 <td>${mov.Usuario}</td>
                 <td>${mov.IP}</td>
-                <td>${new Date(mov.PostTime).toLocaleString()}</td>
+                <td>${horaFormateada}</td>
             `;
             tabla.appendChild(fila);
         });
     })
-    .catch(error => console.error('Error al cargar los movimientos:', error));
+    .catch(error => console.error('Error al cargar la lista de movimientos:', error));
 }
 
 function irAInsertarMovimiento() {
     const params = new URLSearchParams(window.location.search);
     const docIdentidad = params.get('doc');
-    // Redirige a la página de insertar movimiento, pasando el documento del empleado
     window.location.href = `insertarMovimiento.html?doc=${docIdentidad}`;
 }
 

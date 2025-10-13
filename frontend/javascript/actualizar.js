@@ -21,15 +21,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function cargarPuestosYEmpleado() {
-    // 1. Cargar la lista de todos los puestos
+    // Cargar la lista de todos los puestos
     const puestosPromise = fetch('http://localhost:5000/proyecto/puestos/', { credentials: 'include' })
         .then(res => res.json());
 
-    // 2. Cargar los datos del empleado actual
+    // Cargar los datos del empleado actual
     const empleadoPromise = fetch(`http://localhost:5000/proyecto/select/${docOriginal}/`, { credentials: 'include' })
         .then(res => res.json());
 
-    // 3. Cuando ambas promesas se completen, poblar el formulario
+    // Cuando ambas promesas se completen, poblar el formulario
     Promise.all([puestosPromise, empleadoPromise])
         .then(([puestos, empleado]) => {
             if (puestos.error || empleado.error) {
