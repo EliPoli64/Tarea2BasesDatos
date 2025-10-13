@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movimientos de Empleado</title>
+    <link rel="stylesheet" href="../css/estilos.css ">
+</head>
+<body>
+    <h1>Historial de Movimientos</h1>
+
+    <div id="info-empleado-container">
+        <h2>Información del Empleado</h2>
+        <p><strong>Nombre:</strong> <span id="empleado-nombre">Cargando...</span></p>
+        <p><strong>Documento de Identidad:</strong> <span id="empleado-documento">Cargando...</span></p>
+        <p><strong>Saldo de Vacaciones Actual:</strong> <span id="empleado-saldo">Cargando...</span></p>
+    </div>
+
+    <div id="buttons-container">
+        <button onclick="irAInsertarMovimiento()">Insertar Nuevo Movimiento</button>
+        <button onclick="volverAPrincipal()">Regresar a la Lista</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Tipo de Movimiento</th>
+                <th>Monto</th>
+                <th>Nuevo Saldo</th>
+                <th>Registrado por</th>
+                <th>IP</th>
+                <th>Hora del Registro</th>
+            </tr>
+        </thead>
+        <tbody id="movimientos-tabla">
+            </tbody>
+    </table>
+
+    <script src="../javascript/movimientos.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualizar Empleado</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <h1>Actualizar Información del Empleado</h1>
+    <div id="insert-container">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre">
+
+        <label for="docIdentidad">Documento de Identidad:</label>
+        <input type="text" id="docIdentidad">
+        
+        <label for="puestos-dropdown">Puesto:</label>
+        <select id="puestos-dropdown"></select>
+
+        <label for="saldo">Saldo de Vacaciones (No editable):</label>
+        <input type="text" id="saldo" readonly disabled>
+    </div>
+    <div id="buttons-container">
+        <button onclick="guardarCambios()">Guardar Cambios</button>
+        <button onclick="volverAPrincipal()">Cancelar</button>
+    </div>
+    
+    <script src="../javascript/actualizar.js"></script>
+</body>
+</html>
