@@ -99,7 +99,6 @@ BEGIN TRY
     --
     PRINT 'Poblando tabla Movimiento...';
     
-    -- Asumo que la columna PostTime fue cambiada a DATETIME.
     -- El campo Descripcion se llena con un valor por defecto ya que no viene en el XML.
     INSERT INTO dbo.Movimiento (ID, IDEmpleado, IDTipoMovimiento, IDPostByUser, Fecha, PostInIP, Descripcion, Monto, PostTime)
     SELECT

@@ -40,6 +40,21 @@ GO
 GRANT EXECUTE ON dbo.ActualizarEmpleado TO Remoto;
 GO
 
+-- Otorga el permiso de EJECUTAR en el procedimiento almacenado espec�fico
+-- al usuario Remoto.
+GRANT EXECUTE ON dbo.ObtenerTipoMovimiento TO Remoto;
+GO
+
+-- Otorga el permiso de EJECUTAR en el procedimiento almacenado espec�fico
+-- al usuario Remoto.
+GRANT EXECUTE ON dbo.InsertarMovimiento TO Remoto;
+GO
+
+-- Otorga el permiso de EJECUTAR en el procedimiento almacenado espec�fico
+-- al usuario Remoto.
+GRANT EXECUTE ON dbo.ListarMovimientosPorEmpleado TO Remoto;
+GO
+
 -- Hay que cambiar el tama�o del error en la bitacora porque si no da error en el SP
 
 ALTER TABLE dbo.DBError
