@@ -11,6 +11,7 @@ BEGIN
               , E.ValorDocumentoIdentidad
               , P.Nombre AS Puesto
               , P.SalarioxHora
+              , E.SaldoVacaciones
             FROM [dbo].[Empleado] E 
             JOIN [dbo].[Puesto] P ON E.IDPuesto = P.ID -- join para info de puesto
             WHERE E.EsActivo = 1
