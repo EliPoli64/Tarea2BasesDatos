@@ -17,8 +17,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function cargarDatosIniciales(docIdentidad) {
-    const empleadoPromise = fetch(`http://localhost:5000/proyecto/select/${docIdentidad}/`, { credentials: 'include' })
-        .then(res => res.json());
+    const datosPeticion = {
+        filtro: docIdentidad,
+        usuario: sessionStorage.getItem('usuario'),
+        ip: sessionStorage.getItem('ip')
+    };
+    const queryParams = new URLSearchParams(datosPeticion).toString();
+
+    const empleadoPromise = fetch(`http://localhost:5000/proyecto/select?${queryParams}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+    })
+    .then(res => res.json());
 
     const tiposMovimientoPromise = fetch(`http://localhost:5000/proyecto/tiposMovimiento/`, { credentials: 'include' })
         .then(res => res.json());

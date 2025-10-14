@@ -131,7 +131,7 @@ BEGIN
                 @inIP
                 , @inUsuario
                 , @descBitacora
-                , 6  -- insercion exitosa
+                , 8  -- insercion exitosa
                 , @bitacoraResultCode OUTPUT;
             
             IF (@bitacoraResultCode <> 0)

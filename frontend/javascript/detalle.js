@@ -14,7 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    fetch(`http://localhost:5000/proyecto/select/${docIdentidad}/`, {
+    const datosPeticion = {
+        filtro: docIdentidad,
+        usuario: sessionStorage.getItem('usuario'),
+        ip: sessionStorage.getItem('ip')
+    };
+    const queryParams = new URLSearchParams(datosPeticion).toString();
+
+    fetch(`http://localhost:5000/proyecto/select?${queryParams}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
     })
     .then(response => {

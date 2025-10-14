@@ -18,6 +18,7 @@ BEGIN
     BEGIN
         -- no hay código para esta ocasión
         -- averiguar qué se inserta en logs aquí
+        -- en este caso, no se coloca nada ya que el empleado si o si existe debido a como se manejan los datos en capa logica y frontend
         SET @outResultCode = 50008 -- error bd
         RETURN;
     END

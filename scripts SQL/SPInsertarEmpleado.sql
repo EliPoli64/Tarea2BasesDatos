@@ -16,7 +16,7 @@ BEGIN
     IF EXISTS (SELECT 1 FROM dbo.Empleado WHERE ValorDocumentoIdentidad = @inDocumentoIdentidad AND EsActivo = 1)
     BEGIN
         SET @descBitacora = CONCAT(
-            'Empleado con ValorDocumentoIdentidad ya existe en actualización,'
+            'Empleado con ValorDocumentoIdentidad ya existe en inserción,'
             , @inDocumentoIdentidad
             , ','
             , @inNombre
@@ -27,9 +27,29 @@ BEGIN
             @inIP
             , @inUsuario
             , @descBitacora
-            , 5
+            , 5 -- Inserción no exitosa
             , @bitacoraResultCode OUTPUT;
-        SET @outResultCode = 50005;
+        SET @outResultCode = 50004; -- Empleado con ValorDocumentoIdentidad ya existe
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM dbo.Empleado WHERE Nombre = @inNombre AND EsActivo = 1)
+    BEGIN
+        SET @descBitacora = CONCAT(
+            'Empleado con el mismo nombre ya existe en inserción,'
+            , @inDocumentoIdentidad
+            , ','
+            , @inNombre
+            , ','
+            , @inPuesto)
+
+        EXEC dbo.InsertarBitacora 
+            @inIP
+            , @inUsuario
+            , @descBitacora
+            , 5 -- Inserción no exitosa
+            , @bitacoraResultCode OUTPUT;
+        SET @outResultCode = 50005; -- Empleado con mismo nombre ya existe
         RETURN;
     END
     
@@ -52,9 +72,9 @@ BEGIN
             @inIP
             , @inUsuario
             , @descBitacora
-            , 5
+            , 5 -- Inserción no exitosa
             , @bitacoraResultCode OUTPUT;
-        SET @outResultCode = 50008;
+        SET @outResultCode = 50008; -- Error de base de datos
         RETURN;
     END
 
@@ -69,7 +89,7 @@ BEGIN
         BEGIN TRANSACTION
 
             INSERT INTO dbo.Empleado (
-                [ID] -- Columna ID añadida
+                [ID]
                 , [IDPuesto]
                 , [ValorDocumentoIdentidad]
                 , [Nombre]
@@ -90,7 +110,7 @@ BEGIN
                 @inIP
                 , @inUsuario
                 , @descBitacora
-                , 6
+                , 6 -- Inserción exitosa
                 , @bitacoraResultCode OUTPUT;
             
             IF (@bitacoraResultCode <> 0)
@@ -108,7 +128,7 @@ BEGIN
 			ROLLBACK TRANSACTION;
 
 		INSERT INTO dbo.DBError (
-			[ID] -- Columna ID añadida
+			[ID]
             , [UserName]
 			, [Number]
 			, [State]
@@ -129,7 +149,7 @@ BEGIN
 			, GETDATE()
 		);
 
-		SET @outResultCode = 50008;
+		SET @outResultCode = 50008; -- Error de base de datos
     END CATCH;
 END;
 GO

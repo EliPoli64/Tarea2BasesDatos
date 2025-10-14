@@ -19,7 +19,21 @@ function cargarEmpleados() {
 
 function filtrarEmpleados() {
     const filtro = document.getElementById('filtro').value;
-    const url = filtro ? `http://LOCALHOST:5000/proyecto/select/${filtro}` : `http://LOCALHOST:5000/proyecto/selectTodos/`;
+    const datosPeticion = {
+        filtro: filtro,
+        usuario: sessionStorage.getItem('usuario'),
+        ip: sessionStorage.getItem('ip')
+    };
+    const queryParams = new URLSearchParams(datosPeticion).toString();
+
+    fetch(`http://localhost:5000/proyecto/select?${queryParams}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+    })
+
+    
+    const url = filtro ? `http://LOCALHOST:5000/proyecto/select?${queryParams}` : `http://LOCALHOST:5000/proyecto/selectTodos/`;
     
     fetch(url, {credentials: 'include'})
         .then(response => response.json())
@@ -88,8 +102,15 @@ function editarEmpleado(doc) { window.location.href = `actualizar.html?doc=${doc
 function verMovimientos(doc) { window.location.href = `movimientos.html?doc=${doc}`; }
 
 function cerrarSesion() {
+    const datosUsuario = {
+        usuario: sessionStorage.getItem('usuario'),
+        ip: sessionStorage.getItem('ip')
+    };
+
     fetch('http://localhost:5000/proyecto/logout/', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datosUsuario),
         credentials: 'include'
     })
     .then(response => response.json())

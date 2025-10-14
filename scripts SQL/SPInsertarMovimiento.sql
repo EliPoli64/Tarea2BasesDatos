@@ -53,7 +53,12 @@ BEGIN
             '. Saldo actual: ', CAST(@saldoActual AS VARCHAR), 
             '. Movimiento: ', @nombreMovimiento, ', Monto: ', CAST(@inMonto AS VARCHAR)
         );
-        EXEC dbo.InsertarBitacora @inIP, @inUsuario, @descBitacora, 13, @bitacoraResultCode OUTPUT; -- Evento: Intento de insertar movimiento
+        EXEC dbo.InsertarBitacora 
+        @inIP 
+        , @inUsuario 
+        , @descBitacora
+        , 13 
+        , @bitacoraResultCode OUTPUT; -- Evento: Intento de insertar movimiento
         SET @outResultCode = 50011; -- Monto del movimiento rechazado
         RETURN;
     END
@@ -94,7 +99,12 @@ BEGIN
                 '. Nuevo Saldo: ', CAST(@nuevoSaldo AS VARCHAR), 
                 '. Movimiento: ', @nombreMovimiento, ', Monto: ', CAST(@inMonto AS VARCHAR)
             );
-            EXEC dbo.InsertarBitacora @inIP, @inUsuario, @descBitacora, 14, @bitacoraResultCode OUTPUT; -- Evento: Insertar movimiento exitoso
+            EXEC dbo.InsertarBitacora 
+            @inIP 
+            , @inUsuario 
+            , @descBitacora
+            , 14 
+            , @bitacoraResultCode OUTPUT; -- Evento: Insertar movimiento exitoso
 
             IF (@bitacoraResultCode <> 0)
             BEGIN

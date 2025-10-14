@@ -1,35 +1,53 @@
 ﻿CREATE OR ALTER PROCEDURE [dbo].[FiltrarEmpleados]
     @infiltro        VARCHAR(64)
+    , @inUsuario        VARCHAR(32)
+    , @inIP             VARCHAR(32)
     , @outResultCode INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
     SET @outResultCode = 0;
+
     BEGIN TRY
+        DECLARE @bitacoraResultCode INT;
+
+        IF (@infiltro IS NOT NULL AND @infiltro <> '')  
+        BEGIN
+            -- Si es numérico, es una búsqueda por documento de identidad
+            IF (ISNUMERIC(@infiltro) = 1)
+            BEGIN
+                EXEC dbo.InsertarBitacora
+                    @inIP            = @inIP
+                    , @inUsuario     = @inUsuario
+                    , @inDescripcion = @infiltro
+                    , @inTipoEvento  = 12 -- Consulta con filtro de cédula
+                    , @outResultCode = @bitacoraResultCode OUTPUT;
+            END
+            -- Si no es numérico, es una búsqueda por nombre
+            ELSE
+            BEGIN
+                EXEC dbo.InsertarBitacora
+                    @inIP            = @inIP
+                    , @inUsuario     = @inUsuario
+                    , @inDescripcion = @infiltro
+                    , @inTipoEvento  = 11 -- Consulta con filtro de nombre
+                    , @outResultCode = @bitacoraResultCode OUTPUT;
+            END
+        END
+
         SELECT E.ID
               , E.Nombre
               , E.ValorDocumentoIdentidad
               , P.Nombre AS Puesto
               , P.SalarioxHora
               , E.SaldoVacaciones
-            FROM [dbo].[Empleado] E 
-            JOIN [dbo].[Puesto] P ON E.IDPuesto = P.ID -- join para info de puesto
+            FROM [dbo].[Empleado] E
+            JOIN [dbo].[Puesto] P ON E.IDPuesto = P.ID
             WHERE E.EsActivo = 1
             AND (
-                -- si es vac�o retorne todo
-                @infiltro = '' 
-                OR 
-                (
-                    @infiltro <> '' 
-                    AND 
-                    (
-                        -- si es num�rico busque por c�dula
-                        (@infiltro NOT LIKE '%[^0-9]%' AND E.ValorDocumentoIdentidad LIKE '%' + @infiltro + '%')
-                        OR
-                        -- si tiene letras
-                        (E.Nombre LIKE '%' + @infiltro + '%')
-                    )
-                )
+                @infiltro = ''
+                OR E.Nombre LIKE '%' + @infiltro + '%'
+                OR E.ValorDocumentoIdentidad LIKE '%' + @infiltro + '%'
             )
             ORDER BY E.Nombre ASC;
     END TRY

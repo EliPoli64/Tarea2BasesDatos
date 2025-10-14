@@ -30,13 +30,17 @@ def obtener_descripcion_error(codigo_error):
     return descripcion
 
 # Endpoints
-@app.route("/proyecto/select/<string:nombre>/") # Endpoint corregido
-def ejecutarSPSelect(nombre):
+@app.route("/proyecto/select", methods=['GET']) # Endpoint corregido
+def ejecutarSPSelect():
     try:
+        documentoIdentidad = request.args.get('documentoIdentidad')
+        usuario_logueado = request.args.get('usuario')
+        filtro = request.args.get('filtro')
+
         conexion = pyodbc.connect(stringConexion)
         cursor = conexion.cursor()
-        sql = "{CALL dbo.FiltrarEmpleados (?, ?)}"
-        parametros = (nombre, 0)
+        sql = "{CALL dbo.FiltrarEmpleados (?, ?, ?, ?)}"
+        parametros = (filtro, usuario_logueado, documentoIdentidad, 0)
         cursor.execute(sql, parametros)
         filas = cursor.fetchall()
         headers = ["ID", "Nombre", "ValorDocumentoIdentidad", "Puesto", "Salario x Hora", "SaldoVacaciones"]
@@ -61,8 +65,8 @@ def ejecutarSPSelectTodos():
     try:
         conexion = pyodbc.connect(stringConexion)
         cursor = conexion.cursor()
-        sql = "{CALL dbo.FiltrarEmpleados (?, ?)}"
-        parametros = ("%", 0)
+        sql = "{CALL dbo.FiltrarEmpleados (?, ?, ?, ?)}"
+        parametros = ("%", 0, 0, 0)
         cursor.execute(sql, parametros)
         filas = cursor.fetchall()
         headers = ["ID", "Nombre", "ValorDocumentoIdentidad", "Puesto", "Salario x Hora"]
@@ -129,7 +133,9 @@ def ejecutarSPLogin():
         EXEC dbo.VerificarLogin @inIP = ?, @inUsuario = ?, @inContrasenna = ?, @outResultCode = @outResultCode OUTPUT;
         SELECT @outResultCode;
         """
+        
         parametros = (ip_cliente, usuario, contrasena)
+        print(parametros)
         
         codigo_resultado = cursor.execute(sql, parametros).fetchval()
 
@@ -154,28 +160,28 @@ def ejecutarSPLogin():
 
 @app.route("/proyecto/logout/", methods=['POST']) # Endpoint nuevo
 def logout():
-    if 'usuario' in session:
-        usuario = session.get('usuario')
-        ip_cliente = session.get('ip')
-        
-        try:
-            conn = pyodbc.connect(stringConexion)
-            cursor = conn.cursor()
-            sql = """
-            DECLARE @outResultCode INT;
-            EXEC dbo.RegistrarLogout @inIP = ?, @inUsuario = ?, @outResultCode = @outResultCode OUTPUT;
-            SELECT @outResultCode;
-            """
-            params = (ip_cliente, usuario)
-            cursor.execute(sql, params)
-            conn.commit()
+    datos_movimiento = request.get_json()
+    usuario = datos_movimiento.get('usuario')
+    ip = datos_movimiento.get('ip')
+    
+    try:
+        conn = pyodbc.connect(stringConexion)
+        cursor = conn.cursor()
+        sql = """
+        DECLARE @outResultCode INT;
+        EXEC dbo.RegistrarLogout @inUsuario = ?, @inIP = ?, @outResultCode = @outResultCode OUTPUT;
+        SELECT @outResultCode;
+        """
+        params = (usuario, ip)
+        cursor.execute(sql, params)
+        conn.commit()
 
-        except pyodbc.Error as ex:
-            print(f"Error de base de datos al registrar logout: {ex}")
-            # Aunque falle el registro, se debe cerrar sesion
-        finally:
-            if 'conn' in locals():
-                conn.close()
+    except pyodbc.Error as ex:
+        print(f"Error de base de datos al registrar logout: {ex}")
+        # Aunque falle el registro, se debe cerrar sesion
+    finally:
+        if 'conn' in locals():
+            conn.close()
 
     # Limpia/destruye la sesión del usuario
     session.clear()

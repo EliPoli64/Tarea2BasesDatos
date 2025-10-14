@@ -26,8 +26,20 @@ function cargarPuestosYEmpleado() {
         .then(res => res.json());
 
     // Cargar los datos del empleado actual
-    const empleadoPromise = fetch(`http://localhost:5000/proyecto/select/${docOriginal}/`, { credentials: 'include' })
-        .then(res => res.json());
+    const datosPeticion = {
+        filtro: docOriginal,
+        usuario: sessionStorage.getItem('usuario'),
+        ip: sessionStorage.getItem('ip')
+    };
+    const queryParams = new URLSearchParams(datosPeticion).toString();
+
+    
+    const empleadoPromise = fetch(`http://localhost:5000/proyecto/select?${queryParams}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+    })
+    .then(res => res.json());
 
     // Cuando ambas promesas se completen, poblar el formulario
     Promise.all([puestosPromise, empleadoPromise])
