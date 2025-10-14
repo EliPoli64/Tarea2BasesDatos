@@ -29,6 +29,7 @@ def obtener_descripcion_error(codigo_error):
             conexion.close()
     return descripcion
 
+# Endpoints
 @app.route("/proyecto/select/<string:nombre>/") # Endpoint corregido
 def ejecutarSPSelect(nombre):
     try:
@@ -186,8 +187,6 @@ def insertar_empleado():
     #if 'usuario' not in session:
         #return jsonify({"exito": False, "mensaje": "No autorizado. Por favor, inicie sesión."}), 401
 
-
-    
     datos_empleado = request.get_json()
     nombre_nuevo = datos_empleado.get('nombre')
     puesto_nuevo = datos_empleado.get('puesto')
@@ -297,6 +296,109 @@ def actualizar_empleado():
     finally:
         if 'conn' in locals():
             conn.close()
+
+@app.route("/proyecto/tiposMovimiento/", methods=['GET']) # Endpoint nuevo
+def TiposMovimiento():
+    try:
+        conn = pyodbc.connect(stringConexion)
+        cursor = conn.cursor()     
+        
+        sql = """
+        DECLARE @outResultCode INT;
+        EXEC dbo.ObtenerTipoMovimiento @outResultCode = @outResultCode OUTPUT;
+        SELECT @outResultCode;
+        """
+        #codigo_resultado = cursor.execute(sql).fetchval()
+        cursor.execute(sql)
+        filas = cursor.fetchall()
+        headers = ["ID", "Movimiento", "Tipo"]
+        listaMovimientos = []
+        for fila in filas:
+            filaLista = dict(zip(headers, fila))
+            listaMovimientos.append(filaLista)
+        return jsonify(listaMovimientos)
+
+    except pyodbc.Error as ex:
+        print(f"Error al cargar tipos de movimientos: {ex}")
+        return jsonify({"exito": False, "mensaje": "Error en la base de datos al cargar tipos de movimientos."}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+@app.route("/proyecto/insertarMovimiento/", methods=['POST']) # Endpoint nuevo
+def insertar_movimiento():
+    
+    datos_movimiento = request.get_json()
+    documentoIdentidad = datos_movimiento.get('documentoIdentidad')
+    tipoMovimiento = datos_movimiento.get('tipoMovimiento')
+    monto = datos_movimiento.get('monto')
+    usuario_logueado = datos_movimiento.get('usuario')
+    ip_usuario = datos_movimiento.get('ip')
+
+    try:
+        conn = pyodbc.connect(stringConexion)
+        cursor = conn.cursor()     
+        
+        sql = """
+        DECLARE @outResultCode INT;
+        EXEC dbo.InsertarMovimiento @inDocumentoIdentidad = ?, @inIdTipoMovimiento = ?, @inMonto = ?, @inIP = ?, @inUsuario = ?, @outResultCode = @outResultCode OUTPUT;
+        SELECT @outResultCode;
+        """
+        params = (documentoIdentidad, tipoMovimiento, monto, ip_usuario, usuario_logueado)
+        print(params)
+        
+        codigo_resultado = cursor.execute(sql, params).fetchval()
+        conn.commit() 
+
+        if codigo_resultado == 0:
+             return jsonify({"exito": True, "mensaje": "Movimiento insertado correctamente."})
+        else:
+            mensaje_error = obtener_descripcion_error(codigo_resultado)
+            return jsonify({"exito": False, "mensaje": mensaje_error})
+
+    except pyodbc.Error as ex:
+        print(f"Error al insertar movimiento: {ex}")
+        return jsonify({"exito": False, "mensaje": "Error en la base de datos al insertar."}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+@app.route("/proyecto/movimientos", methods=['GET']) # Endpoint nuevo
+def listar_movimientos():
+    try:
+        documentoIdentidad = request.args.get('documentoIdentidad')
+        usuario_logueado = request.args.get('usuario')
+        ip = request.args.get('ip')
+
+        if not documentoIdentidad or not usuario_logueado or not ip:
+            return jsonify({"error": "Faltan parámetros en la solicitud"}), 400
+
+        conexion = pyodbc.connect(stringConexion)
+        cursor = conexion.cursor()
+        sql = """
+        DECLARE @outResultCode INT;
+        EXEC dbo.ListarMovimientosPorEmpleado @inDocumentoIdentidad = ?, @inIP = ?, @inUsuario = ?, @outResultCode = @outResultCode OUTPUT;
+        SELECT @outResultCode;
+        """
+        parametros = (documentoIdentidad, usuario_logueado, ip)
+        cursor.execute(sql, parametros)
+        filas = cursor.fetchall()
+        headers = ["Fecha", "TipoMovimiento", "Monto", "NuevoSaldo", "Usuario", "IP", "PostTime"]
+        listaMovimientos = []
+        for fila in filas:
+            filaLista = dict(zip(headers, fila))
+            listaMovimientos.append(filaLista)
+        return jsonify(listaMovimientos)
+        
+    except pyodbc.Error as ex:
+        sqlstate = ex.args[0]
+        print(f"Error: {sqlstate}")
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conexion' in locals():
+            conexion.close()
+    return jsonify({"error": "Error al obtener los movimientos"})
 
 
 
