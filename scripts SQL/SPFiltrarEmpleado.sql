@@ -11,7 +11,7 @@ BEGIN
     BEGIN TRY
         DECLARE @bitacoraResultCode INT;
 
-        IF (@infiltro IS NOT NULL AND @infiltro <> '')  
+        IF (@infiltro <> '')  
         BEGIN
             -- Si es numérico, es una búsqueda por documento de identidad
             IF (ISNUMERIC(@infiltro) = 1)

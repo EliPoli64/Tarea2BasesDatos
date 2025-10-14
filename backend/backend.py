@@ -33,14 +33,18 @@ def obtener_descripcion_error(codigo_error):
 @app.route("/proyecto/select", methods=['GET']) # Endpoint corregido
 def ejecutarSPSelect():
     try:
-        documentoIdentidad = request.args.get('documentoIdentidad')
+        ip = request.args.get('ip')
         usuario_logueado = request.args.get('usuario')
         filtro = request.args.get('filtro')
 
         conexion = pyodbc.connect(stringConexion)
         cursor = conexion.cursor()
-        sql = "{CALL dbo.FiltrarEmpleados (?, ?, ?, ?)}"
-        parametros = (filtro, usuario_logueado, documentoIdentidad, 0)
+        sql = """
+            DECLARE @outResultCode INT;
+            EXEC dbo.FiltrarEmpleados @infiltro = ?, @inUsuario = ?, @inIP = ?, @outResultCode = @outResultCode OUTPUT;
+            SELECT @outResultCode;
+            """
+        parametros = (filtro, usuario_logueado, ip)
         cursor.execute(sql, parametros)
         filas = cursor.fetchall()
         headers = ["ID", "Nombre", "ValorDocumentoIdentidad", "Puesto", "Salario x Hora", "SaldoVacaciones"]
@@ -136,7 +140,7 @@ def ejecutarSPLogin():
         
         parametros = (ip_cliente, usuario, contrasena)
         print(parametros)
-        
+
         codigo_resultado = cursor.execute(sql, parametros).fetchval()
 
         print(codigo_resultado)

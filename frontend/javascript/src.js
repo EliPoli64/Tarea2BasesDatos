@@ -25,17 +25,12 @@ function filtrarEmpleados() {
         ip: sessionStorage.getItem('ip')
     };
     const queryParams = new URLSearchParams(datosPeticion).toString();
-
-    fetch(`http://localhost:5000/proyecto/select?${queryParams}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
-    })
-
-    
+   
     const url = filtro ? `http://LOCALHOST:5000/proyecto/select?${queryParams}` : `http://LOCALHOST:5000/proyecto/selectTodos/`;
     
-    fetch(url, {credentials: 'include'})
+    fetch(url, {method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'})
         .then(response => response.json())
         .then(data => {
             renderizarTabla(data);
