@@ -49,6 +49,7 @@ function cargarDatosIniciales(docIdentidad) {
             tiposMovimiento.forEach(tipo => {
                 const option = document.createElement('option');
                 option.value = tipo.ID;
+                console.log(option.value);
 
                 option.textContent = (tipo.Tipo === 'Cr') ?  (tipo.Movimiento + " " + "(Crédito)") : (tipo.Movimiento + " " + "(Débito)");
                 
@@ -85,8 +86,9 @@ function guardarMovimiento() {
     })
     .then(response => response.json())
     .then(data => {
-        alert(data.mensaje);
+        
         if (data.exito) {
+            alert("Movimiento guardado exitosamente.");
             // Regresa a la página de movimientos del empleado para ver el cambio
             window.location.href = `movimientos.html?doc=${docIdentidad}`;
         }

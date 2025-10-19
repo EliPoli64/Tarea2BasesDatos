@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const dropdown = document.getElementById('puestos-dropdown');
             puestos.forEach(puesto => {
                 const option = document.createElement('option');
-                option.value = puesto.Nombre;
-                option.textContent = puesto.Nombre;
+                option.value = puesto.nombre;
+                option.textContent = puesto.nombre;
                 dropdown.appendChild(option);
             });
     });
@@ -55,9 +55,9 @@ function insertarEmpleado() {
     .then(response => response.json())
     .then(data => {
         
-        alert(data.mensaje);
         
         if (data.exito) {
+            alert('Empleado insertado correctamente.');
             document.getElementById('nombre').value = '';
             document.getElementById('docIdentidad').value = '';
             window.location.href = 'index.html';

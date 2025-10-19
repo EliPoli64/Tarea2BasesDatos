@@ -148,7 +148,6 @@ def insertarEmpleado():
         else:
             conn.rollback()
             errorMessage = obtenerDescripcionError(resultCode)
-            print(resultCode)
             return jsonify({"exito": False, "message": errorMessage})
 
     except pyodbc.Error as ex:
@@ -261,14 +260,12 @@ def ejecutarSpObtenerPuestos():
         # Parámetros de ejemplo/placeholder
         cursor.execute(sql)
         filas = cursor.fetchall()
-        print(filas)
         
         headers = ["id","nombre"]
         listaPuestos = []
         for fila in filas:
             filaLista = dict(zip(headers, fila))
             listaPuestos.append(filaLista)
-        print(listaPuestos)
         return jsonify(listaPuestos)
 
     except pyodbc.Error as ex:
@@ -384,7 +381,7 @@ def obtenerTiposMovimiento():
         filas = cursor.fetchall() 
         
         # Ojo: El SP retorna primero las filas y luego el código de resultado (que aquí se ignora)
-        headers = ["id", "Movimiento", "Tipo"]
+        headers = ["ID", "Movimiento", "Tipo"]
         listaTiposMovimiento = []
         for fila in filas:
             filaLista = dict(zip(headers, fila))
@@ -486,7 +483,7 @@ def listarMovimientos():
             # Conversión de Fecha (date o datetime)
             fecha = filaDict.get("Fecha")
             if isinstance(fecha, (datetime, date)):
-                 filaDict["Fecha"] = fecha.strftime("%Y-%m-%d")
+                filaDict["Fecha"] = fecha.strftime("%Y-%m-%d")
 
             # Conversión de PostTime (time o datetime)
             postTime = filaDict.get("PostTime")
@@ -498,7 +495,6 @@ def listarMovimientos():
                     filaDict["PostTime"] = postTime.strftime("%H:%M:%S")
 
             listaMovimientos.append(filaDict)
-            print(listaMovimientos)
             
         return jsonify(listaMovimientos)
 
