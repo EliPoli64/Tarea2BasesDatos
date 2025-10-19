@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function cargarPuestosYEmpleado() {
     // Cargar la lista de todos los puestos
-    const puestosPromise = fetch('http://localhost:5000/proyecto/puestos/', { credentials: 'include' })
+    const puestosPromise = fetch('http://25.38.209.9:5000/proyecto/puestos/', { credentials: 'include' })
         .then(res => res.json());
 
     // Cargar los datos del empleado actual
@@ -34,7 +34,7 @@ function cargarPuestosYEmpleado() {
     const queryParams = new URLSearchParams(datosPeticion).toString();
 
     
-    const empleadoPromise = fetch(`http://localhost:5000/proyecto/select?${queryParams}`, {
+    const empleadoPromise = fetch(`http://25.38.209.9:5000/proyecto/select?${queryParams}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
@@ -53,8 +53,8 @@ function cargarPuestosYEmpleado() {
             const dropdown = document.getElementById('puestos-dropdown');
             puestos.forEach(puesto => {
                 const option = document.createElement('option');
-                option.value = puesto.Nombre;
-                option.textContent = puesto.Nombre;
+                option.value = puesto.nombre;
+                option.textContent = puesto.nombre;
                 dropdown.appendChild(option);
             });
 
@@ -85,7 +85,7 @@ function guardarCambios() {
         ip: sessionStorage.getItem('ip')
     };
 
-    fetch('http://localhost:5000/proyecto/actualizarEmpleado/', {
+    fetch('http://25.38.209.9:5000/proyecto/actualizarEmpleado/', {
         method: 'PUT', // Usamos PUT para actualizaciones
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datosActualizados),

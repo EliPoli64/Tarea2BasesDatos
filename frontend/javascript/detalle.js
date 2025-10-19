@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const queryParams = new URLSearchParams(datosPeticion).toString();
 
-    fetch(`http://localhost:5000/proyecto/select?${queryParams}`, {
+    fetch(`http://25.38.209.9:5000/proyecto/select?${queryParams}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'

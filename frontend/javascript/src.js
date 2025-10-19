@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function cargarEmpleados() {
-    fetch(`http://LOCALHOST:5000/proyecto/selectTodos/`, {credentials: 'include'})
+    fetch(`http://25.38.209.9:5000/proyecto/selectTodos/`, {credentials: 'include'})
         .then(response => response.json())
         .then(data => {
             renderizarTabla(data);
@@ -26,7 +26,7 @@ function filtrarEmpleados() {
     };
     const queryParams = new URLSearchParams(datosPeticion).toString();
    
-    const url = filtro ? `http://LOCALHOST:5000/proyecto/select?${queryParams}` : `http://LOCALHOST:5000/proyecto/selectTodos/`;
+    const url = filtro ? `http://25.38.209.9:5000/proyecto/select?${queryParams}` : `http://25.38.209.9:5000/proyecto/selectTodos/`;
     
     fetch(url, {method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
@@ -70,7 +70,7 @@ function eliminarEmpleado(documentoIdentidad, nombreEmpleado) {
             ip: sessionStorage.getItem('ip')
         };
         
-        fetch(`http://LOCALHOST:5000/proyecto/eliminarEmpleado/`, { 
+        fetch(`http://25.38.209.9:5000/proyecto/eliminarEmpleado/`, { 
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -102,7 +102,7 @@ function cerrarSesion() {
         ip: sessionStorage.getItem('ip')
     };
 
-    fetch('http://localhost:5000/proyecto/logout/', {
+    fetch('http://25.38.209.9:5000/proyecto/logout/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datosUsuario),

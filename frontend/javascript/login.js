@@ -8,7 +8,7 @@ function iniciarSesion() {
         return;
     }
 
-    fetch(`http://localhost:5000/proyecto/login/`, {
+    fetch(`http://25.38.209.9:5000/proyecto/login/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

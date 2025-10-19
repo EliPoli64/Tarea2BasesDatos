@@ -27,7 +27,7 @@ function cargarInfoEmpleado(docIdentidad) {
     };
     const queryParams = new URLSearchParams(datosPeticion).toString();
 
-    fetch(`http://localhost:5000/proyecto/select?${queryParams}`, {
+    fetch(`http://25.38.209.9:5000/proyecto/select?${queryParams}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
@@ -59,7 +59,7 @@ function cargarListaMovimientos(docIdentidad) {
     };
     const queryParams = new URLSearchParams(datosPeticion).toString();
 
-    fetch(`http://localhost:5000/proyecto/movimientos?${queryParams}`, {
+    fetch(`http://25.38.209.9:5000/proyecto/movimientos?${queryParams}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
@@ -89,9 +89,9 @@ function cargarListaMovimientos(docIdentidad) {
 
             const fechaFormateada = new Date(mov.Fecha).toLocaleDateString();
             const montoFormateado = parseFloat(mov.Monto).toFixed(2);
+            console.log(mov);
 
             const nuevoSaldoFormateado = mov.NuevoSaldo ? parseFloat(mov.NuevoSaldo).toFixed(2) : 'N/A';
-            const horaFormateada = new Date(mov.PostTime).toLocaleString();
 
 
             fila.innerHTML = `
@@ -101,7 +101,7 @@ function cargarListaMovimientos(docIdentidad) {
                 <td>${mov.NuevoSaldo}</td>
                 <td>${mov.Usuario}</td>
                 <td>${mov.IP}</td>
-                <td>${horaFormateada}</td>
+                <td>${mov.PostTime}</td>
             `;
             tabla.appendChild(fila);
         });

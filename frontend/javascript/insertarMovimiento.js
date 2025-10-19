@@ -24,14 +24,14 @@ function cargarDatosIniciales(docIdentidad) {
     };
     const queryParams = new URLSearchParams(datosPeticion).toString();
 
-    const empleadoPromise = fetch(`http://localhost:5000/proyecto/select?${queryParams}`, {
+    const empleadoPromise = fetch(`http://25.38.209.9:5000/proyecto/select?${queryParams}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
     })
     .then(res => res.json());
 
-    const tiposMovimientoPromise = fetch(`http://localhost:5000/proyecto/tiposMovimiento/`, { credentials: 'include' })
+    const tiposMovimientoPromise = fetch(`http://25.38.209.9:5000/proyecto/tiposMovimiento/`, { credentials: 'include' })
         .then(res => res.json());
 
     Promise.all([empleadoPromise, tiposMovimientoPromise])
@@ -77,7 +77,7 @@ function guardarMovimiento() {
         ip: sessionStorage.getItem('ip')
     };
 
-    fetch('http://localhost:5000/proyecto/insertarMovimiento/', {
+    fetch('http://25.38.209.9:5000/proyecto/insertarMovimiento/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datosMovimiento),

@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    fetch(`http://LOCALHOST:5000/proyecto/puestos/`, {credentials: 'include'})
+    fetch(`http://25.38.209.9:5000/proyecto/puestos/`, {credentials: 'include'})
         .then(response => response.json())
         .then(puestos => {
             const dropdown = document.getElementById('puestos-dropdown');
@@ -44,7 +44,7 @@ function insertarEmpleado() {
     };
 
     
-    fetch(`http://localhost:5000/proyecto/insertarEmpleado/`, {
+    fetch(`http://25.38.209.9:5000/proyecto/insertarEmpleado/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
