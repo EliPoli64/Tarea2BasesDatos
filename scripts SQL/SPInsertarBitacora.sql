@@ -35,8 +35,7 @@ BEGIN
 	BEGIN CATCH
 
 		INSERT INTO dbo.DBError (
-			[ID] -- Columna ID añadida
-			, [UserName]
+			[UserName]
 			, [Number]
 			, [State]
 			, [Severity]
@@ -45,8 +44,7 @@ BEGIN
 			, [Message]
 			, [DateTime]
 		) VALUES (
-			(SELECT ISNULL(MAX(ID), 0) + 1 FROM dbo.DBError)
-			, SUSER_SNAME()
+			SUSER_SNAME()
 			, ERROR_NUMBER()
 			, ERROR_STATE()
 			, ERROR_SEVERITY()
