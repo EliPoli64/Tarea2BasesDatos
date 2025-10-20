@@ -310,11 +310,11 @@ def ejecutarSpLogin():
             # Establecer variables de sesión
             session['usuario'] = usuario
             session['ip'] = ipCliente
-            return jsonify({"authenticated": True, "usuario": usuario, "ip": ipCliente})
+            return jsonify({"autenticado": True, "usuario": usuario, "ip": ipCliente})
         else:
             conexion.rollback()
             errorMessage = obtenerDescripcionError(resultCode)
-            return jsonify({"authenticated": False, "message": errorMessage})
+            return jsonify({"autenticado": False, "mensaje": errorMessage})
 
     except pyodbc.Error as ex:
         if 'conexion' in locals() and conexion:

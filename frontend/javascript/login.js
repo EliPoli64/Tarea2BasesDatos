@@ -29,7 +29,7 @@ function iniciarSesion() {
             sessionStorage.setItem('ip', data.ip); // Traemos la ip desde el backend una vez se ha autenticado el usuario, esto porque en el backend no mantiene sesion activa
             window.location.href = 'index.html';
         } else {
-            mensajeError.textContent = data.mensaje || 'Usuario o contraseña incorrectos.';
+            mensajeError.textContent = data.mensaje;
         }
     })
     .catch(error => {
