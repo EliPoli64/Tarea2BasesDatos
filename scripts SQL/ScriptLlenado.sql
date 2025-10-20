@@ -15,7 +15,7 @@ BEGIN TRY
 
     SELECT @xmlData = X
     FROM OPENROWSET(
-        BULK '/var/opt/mssql/data/archivoDatos.xml', -- <-- Esto es una ruta relativa, cambiar en caso de ser necesario
+        BULK 'C:/Users/Elias/projs/Tarea2BasesDatos/archivoDatos.xml', -- <-- Esto es una ruta relativa, cambiar en caso de ser necesario
         SINGLE_BLOB
     ) AS T(X);
 
@@ -99,57 +99,47 @@ BEGIN TRY
     --
     PRINT 'Poblando tabla Movimiento...';
     
-    -- El campo Descripcion se llena con un valor por defecto ya que no viene en el XML.
-    INSERT INTO dbo.Movimiento (ID, IDEmpleado, IDTipoMovimiento, IDPostByUser, Fecha, PostInIP, Descripcion, Monto, PostTime)
-    SELECT
-        ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS ID, -- Genera un ID secuencial
-        e.ID AS IDEmpleado,
-        Movimiento.value('@IdTipoMovimiento', 'INT') AS IDTipoMovimiento,
-        u.ID AS IDPostByUser,
-        Movimiento.value('@Fecha', 'DATE') AS Fecha,
-        Movimiento.value('@PostInIP', 'VARCHAR(32)') AS PostInIP,
-        'Carga inicial desde XML' AS Descripcion, -- Valor por defecto
-        Movimiento.value('@Monto', 'MONEY') AS Monto,
-        Movimiento.value('@PostTime', 'DATETIME') AS PostTime -- Debe ser DATETIME
-    FROM
-        @xmlData.nodes('/Datos/Movimientos/movimiento') AS T(Movimiento)
-    INNER JOIN
-        dbo.Empleado AS e ON T.Movimiento.value('@ValorDocId', 'VARCHAR(50)') = e.ValorDocumentoIdentidad
-    INNER JOIN
-        dbo.Usuario AS u ON T.Movimiento.value('@PostByUser', 'VARCHAR(100)') = u.Username;
+    DECLARE @outResultCode INT;
+
+    DECLARE @documentoIdentidad VARCHAR(32);
+    DECLARE @idTipoMovimiento   INT;
+    DECLARE @monto              INT;
+    DECLARE @ip                 VARCHAR(32);
+    DECLARE @usuario            VARCHAR(32);
+
+    DECLARE @contador INT = 1;
+    DECLARE @totalMovimientos INT;
+
+    SELECT @totalMovimientos = @xmlData.value('count(/Datos/Movimientos/movimiento)', 'INT');
+
+    WHILE @contador <= @totalMovimientos
+    BEGIN
+        SELECT
+            @documentoIdentidad = T.Movimiento.value('@ValorDocId', 'VARCHAR(50)')
+            , @idTipoMovimiento = T.Movimiento.value('@IdTipoMovimiento', 'INT')
+            , @monto = T.Movimiento.value('@Monto', 'INT')
+            , @ip = T.Movimiento.value('@PostInIP', 'VARCHAR(32)')
+            , @usuario = T.Movimiento.value('@PostByUser', 'VARCHAR(32)')
+        FROM @xmlData.nodes('/Datos/Movimientos/movimiento[sql:variable("@contador")]') AS T(Movimiento);
+
+        EXEC [dbo].[InsertarMovimiento]
+            @inDocumentoIdentidad = @documentoIdentidad
+            , @inIdTipoMovimiento = @idTipoMovimiento
+            , @inMonto = @monto
+            , @inIP = @ip
+            , @inUsuario = @usuario
+            , @outResultCode = @outResultCode OUTPUT;
+
+        IF @outResultCode <> 0
+        BEGIN
+            PRINT 'Error al insertar movimiento: ' + CAST(@outResultCode AS VARCHAR(10)) + 
+                ' - Documento: ' + @documentoIdentidad;
+        END
+
+        SET @contador = @contador + 1;
+    END
 
     PRINT 'Tabla Movimiento poblada exitosamente.';
-
-    --
-    -- 4. Actualizar Saldo de Vacaciones de los Empleados
-    --
-    PRINT 'Calculando y actualizando el saldo de vacaciones de cada empleado...';
-
-    WITH SaldosCalculados AS (
-        SELECT
-            m.IDEmpleado,
-            SUM(
-                CASE tm.TipoAccion
-                    WHEN 'Cr' THEN m.Monto -- 'Credito' suma
-                    WHEN 'De' THEN -m.Monto -- 'Debito' resta
-                    ELSE 0
-                END
-            ) AS SaldoFinal
-        FROM
-            dbo.Movimiento AS m
-        INNER JOIN
-            dbo.TipoMovimiento AS tm ON m.IDTipoMovimiento = tm.ID
-        GROUP BY
-            m.IDEmpleado
-    )
-    UPDATE E
-    SET E.SaldoVacaciones = S.SaldoFinal
-    FROM
-        dbo.Empleado AS E
-    INNER JOIN
-        SaldosCalculados AS S ON E.ID = S.IDEmpleado;
-
-    PRINT '¡Proceso de carga de datos completado exitosamente!';
 
 END TRY
 BEGIN CATCH

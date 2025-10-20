@@ -1,8 +1,8 @@
 ﻿CREATE OR ALTER PROCEDURE [dbo].[FiltrarEmpleados]
-    @infiltro        VARCHAR(64)
+    @infiltro           VARCHAR(64)
     , @inUsuario        VARCHAR(32)
     , @inIP             VARCHAR(32)
-    , @outResultCode INT OUTPUT
+    , @outResultCode    INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;

@@ -16,15 +16,13 @@ BEGIN
 			WHERE U.UserName = @inUsuario;
 
 		INSERT INTO dbo.BitacoraEvento (	
-			[ID]
-			, PostInIP
+			PostInIP
 			, [IDPostByUser]
 			, Descripcion
 			, IDTipoEvento
 			, [PostTime]
 		) VALUES (
-			(SELECT ISNULL(MAX(ID), 0) + 1 FROM dbo.BitacoraEvento)
-			, @inIP
+			@inIP
 			, @userID
 			, @inDescripcion
 			, @inTipoEvento

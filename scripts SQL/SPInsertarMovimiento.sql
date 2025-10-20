@@ -1,7 +1,7 @@
 CREATE OR ALTER PROCEDURE dbo.InsertarMovimiento
     @inDocumentoIdentidad   VARCHAR(32)
-    , @inIdTipoMovimiento     INT
-    , @inMonto              MONEY
+    , @inIdTipoMovimiento   INT
+    , @inMonto              INT
     , @inIP                 VARCHAR(32)
     , @inUsuario            VARCHAR(32)
     , @outResultCode        INT OUTPUT
@@ -15,7 +15,7 @@ BEGIN
 
     -- Pre-proceso: Obtener IDs y datos necesarios antes de la transacción
     DECLARE @empleadoID INT;
-    DECLARE @saldoActual MONEY;
+    DECLARE @saldoActual INT;
     DECLARE @nombreEmpleado VARCHAR(64);
     
     SELECT 
@@ -39,7 +39,7 @@ BEGIN
         (TM.ID = @inIdTipoMovimiento);
 
     -- Calcular el nuevo saldo proyectado
-    DECLARE @nuevoSaldo MONEY = @saldoActual;
+    DECLARE @nuevoSaldo INT = @saldoActual;
     IF (@tipoAccion = 'Cr')
         SET @nuevoSaldo = @saldoActual + @inMonto;
     ELSE IF (@tipoAccion = 'De')
@@ -67,8 +67,7 @@ BEGIN
         BEGIN TRANSACTION;
             -- Insertar el nuevo movimiento
             INSERT INTO dbo.Movimiento (
-                [ID] 
-                , [IDEmpleado] 
+                [IDEmpleado] 
                 , [IDTipoMovimiento] 
                 , [IDPostByUser] 
                 , [Fecha] 
@@ -77,15 +76,14 @@ BEGIN
                 , [Monto] 
                 , [PostTime]
             ) VALUES (
-                (SELECT ISNULL(MAX(ID), 0) + 1 FROM dbo.Movimiento) 
-                , @empleadoID 
+                @empleadoID 
                 , @inIdTipoMovimiento 
                 , (SELECT ID FROM dbo.Usuario WHERE UserName = @inUsuario)
                 , GETDATE()
                 , @inIP
                 , 'Registro de movimiento manual' -- Descripción genérica
                 , @inMonto
-                , GETDATE()
+                , CAST(GETDATE() AS TIME)
             );
 
             -- Actualizar el saldo de vacaciones del empleado

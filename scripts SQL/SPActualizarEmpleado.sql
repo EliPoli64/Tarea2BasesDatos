@@ -24,7 +24,7 @@ BEGIN
         AND E.ValorDocumentoIdentidad = @inDocumentoIdentidadActual);
     
     -- buscar saldo para inserciones en bitacora
-    DECLARE @saldoVacaciones MONEY;
+    DECLARE @saldoVacaciones INT;
     SELECT @saldoVacaciones = E.SaldoVacaciones
         FROM dbo.Empleado E
         WHERE (E.Nombre = @inNombreActual
@@ -171,4 +171,3 @@ BEGIN
 		SET @outResultCode = 50008; -- error bd
     END CATCH;
 END;
-GO
