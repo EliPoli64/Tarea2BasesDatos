@@ -88,7 +88,7 @@ function cargarListaMovimientos(docIdentidad) {
             const fila = document.createElement('tr');
 
             const fechaFormateada = new Date(mov.Fecha).toLocaleDateString();
-            const montoFormateado = parseFloat(mov.Monto).toFixed(2);
+            const montoFormateado = mov.Monto;
             console.log(mov);
 
             const nuevoSaldoFormateado = mov.NuevoSaldo ? parseFloat(mov.NuevoSaldo).toFixed(2) : 'N/A';

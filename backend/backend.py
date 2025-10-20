@@ -73,6 +73,7 @@ def ejecutarSpFiltrarEmpleados():
         for fila in filas:
             filaLista = dict(zip(headers, fila))
             listaEmpleados.append(filaLista)
+        conexion.commit()
             
         return jsonify(listaEmpleados)
 
@@ -302,11 +303,9 @@ def ejecutarSpLogin():
         """
         
         parametros = (ipCliente, usuario, contrasena)
-
         resultCode = cursor.execute(sql, parametros).fetchval()
-        
+        conexion.commit()
         if resultCode == 0:
-            conexion.commit()
             # Establecer variables de sesión
             session['usuario'] = usuario
             session['ip'] = ipCliente

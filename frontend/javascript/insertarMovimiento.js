@@ -92,6 +92,9 @@ function guardarMovimiento() {
             // Regresa a la página de movimientos del empleado para ver el cambio
             window.location.href = `movimientos.html?doc=${docIdentidad}`;
         }
+        else {
+            alert(data.message);
+        }
     })
     .catch(error => {
         console.error('Error al guardar movimiento:', error);
